@@ -34,6 +34,14 @@ load "util.rb"
 # and adds fallback gem call removed in https://github.com/rails/rails/commit/4c3725723f15fab0a424cb1318b82b460714b72f
 require File.join(File.dirname(__FILE__), '../lib/old_rubygems_patch')
 
+require 'mail_parsing_with_tmail'
+require 'mail_parsing_with_mail'
+
+if RUBY_VERSION.to_f >= 1.9
+    MailParsing = MailParsingWithMail
+else
+    MailParsing = MailParsingWithTmail
+end
 
 # Application version
 ALAVETELI_VERSION = '0.6.6'
