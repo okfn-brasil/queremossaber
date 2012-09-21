@@ -12,4 +12,12 @@ module MailParsingWithTmail
         return mail
     end
 
+    def MailParsingWithTmail.get_from_address(mail)
+        if mail.from_addrs.nil? || mail.from_addrs.size == 0
+            return nil
+        end
+        mail.from_addrs[0].spec
+    end
+
+
 end
