@@ -12,6 +12,13 @@ module MailParsingWithTmail
         return mail
     end
 
+    # XXX can probably remove from_name_if_present (which is a
+    # monkey patch) by just calling .from_addrs[0].name here
+    # instead?
+    def MailParsingWithTmail.get_from_name(mail)
+        mail.from_name_if_present
+    end
+
     def MailParsingWithTmail.get_from_address(mail)
         if mail.from_addrs.nil? || mail.from_addrs.size == 0
             return nil
@@ -19,5 +26,8 @@ module MailParsingWithTmail
         mail.from_addrs[0].spec
     end
 
+    def MailParsingWithTmail.get_envelope_to_address(mail)
+        mail.envelope_to
+    end
 
 end

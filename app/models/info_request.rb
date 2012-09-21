@@ -354,7 +354,7 @@ public
         addresses =
             (incoming_message.mail.to || []) +
             (incoming_message.mail.cc || []) +
-            (incoming_message.mail.envelope_to || [])
+            (MailParsing.get_envelope_to_address(incoming_message.mail) || [])
         addresses.uniq!
         for address in addresses
             id, hash = InfoRequest._extract_id_hash_from_email(address)
