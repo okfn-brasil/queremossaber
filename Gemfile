@@ -49,4 +49,9 @@ group :develop do
   gem 'ruby-debug', :platforms => :ruby_18
   gem 'ruby-debug19', :platforms => :ruby_19
   gem 'annotate'
+  if RUBY_VERSION.to_f < 1.9
+    gem 'ZenTest', '~> 4.5.0', :platforms => :ruby_18
+  else
+    gem 'ZenTest', '~> 4.6.1', :platforms => :ruby_19
+  end
 end
