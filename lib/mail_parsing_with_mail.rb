@@ -31,4 +31,8 @@ module MailParsingWithMail
         end
     end
 
+    def MailParsingWithMail.get_part_file_name(mail_part)
+        mail_part.filename
+    end
+
 end

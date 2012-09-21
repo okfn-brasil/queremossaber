@@ -30,4 +30,8 @@ module MailParsingWithTmail
         mail.envelope_to
     end
 
+    def MailParsingWithTmail.get_part_file_name(mail_part)
+        TMail::Mail.get_part_file_name(mail_part)
+    end
+
 end

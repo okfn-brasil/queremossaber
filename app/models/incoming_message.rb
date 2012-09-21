@@ -451,7 +451,7 @@ class IncomingMessage < ActiveRecord::Base
 
     # Internal function
     def _get_part_file_name(mail)
-        part_file_name = TMail::Mail.get_part_file_name(mail)
+        part_file_name =  MailParsing.get_part_file_name(mail)
         if part_file_name.nil?
             return nil
         end
