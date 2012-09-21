@@ -34,4 +34,8 @@ module MailParsingWithTmail
         TMail::Mail.get_part_file_name(mail_part)
     end
 
+    def MailParsingWithTmail.get_part_body(mail_part)
+        mail_part.body
+    end
+
 end

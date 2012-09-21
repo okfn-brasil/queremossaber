@@ -35,4 +35,9 @@ module MailParsingWithMail
         mail_part.filename
     end
 
+    def MailParsingWithMail.get_part_body(mail_part)
+        mail_part.body.decoded
+    end
+
 end
+
