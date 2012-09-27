@@ -170,52 +170,6 @@ class IncomingMessage < ActiveRecord::Base
         super
     end
 
-    # Number the attachments in depth first tree order, for use in URLs.
-    # XXX This fills in part.rfc822_attachment and part.url_part_number within
-    # all the parts of the email (see TMail monkeypatch above for how these
-    # attributes are added). ensure_parts_counted must be called before using
-    # the attributes.
-    def ensure_parts_counted
-        @count_parts_count = 0
-        _count_parts_recursive(self.mail)
-        # we carry on using these numeric ids for attachments uudecoded from within text parts
-        @count_first_uudecode_count = @count_parts_count
-    end
-    def _count_parts_recursive(part)
-        if part.multipart?
-            part.parts.each do |p|
-                _count_parts_recursive(p)
-            end
-        else
-            part_filename = MailParsing.get_part_file_name(part)
-            begin
-                if part.content_type == 'message/rfc822'
-                    # An email attached as text
-                    # e.g. http://www.whatdotheyknow.com/request/64/response/102
-                    part.rfc822_attachment = TMail::Mail.parse(part.body)
-                elsif part.content_type == 'application/vnd.ms-outlook' || part_filename && AlaveteliFileTypes.filename_to_mimetype(part_filename) == 'application/vnd.ms-outlook'
-                    # An email attached as an Outlook file
-                    # e.g. http://www.whatdotheyknow.com/request/chinese_names_for_british_politi
-                    msg = Mapi::Msg.open(StringIO.new(part.body))
-                    part.rfc822_attachment = TMail::Mail.parse(msg.to_mime.to_s)
-                elsif part.content_type == 'application/ms-tnef'
-                    # A set of attachments in a TNEF file
-                    part.rfc822_attachment = TNEF.as_tmail(part.body)
-                end
-            rescue
-                # If attached mail doesn't parse, treat it as text part
-                part.rfc822_attachment = nil
-            else
-                unless part.rfc822_attachment.nil?
-                    _count_parts_recursive(part.rfc822_attachment)
-                end
-            end
-            if part.rfc822_attachment.nil?
-                @count_parts_count += 1
-                part.url_part_number = @count_parts_count
-            end
-        end
-    end
     # And look up by URL part number to get an attachment
     # XXX relies on extract_attachments calling ensure_parts_counted
     def self.get_attachment_by_url_part_number(attachments, found_url_part_number)
@@ -639,57 +593,19 @@ class IncomingMessage < ActiveRecord::Base
 
     def extract_attachments!
         force = true
-        leaves = MailParsing.get_attachment_leaves(self.mail(force)) # XXX check where else this is called from
-        # XXX we have to call ensure_parts_counted after get_attachment_leaves
-        # which is really messy.
-        ensure_parts_counted
-        attachments = []
-        for leaf in leaves
-            body = leaf.body
-            # As leaf.body causes MIME decoding which uses lots of RAM, do garbage collection here
-            # to prevent excess memory use. XXX not really sure if this helps reduce
-            # peak RAM use overall. Anyway, maybe there is something better to do than this.
-            GC.start
-            if leaf.within_rfc822_attachment
-                within_rfc822_subject = leaf.within_rfc822_attachment.subject
-                # Test to see if we are in the first part of the attached
-                # RFC822 message and it is text, if so add headers.
-                # XXX should probably use hunting algorithm to find main text part, rather than
-                # just expect it to be first. This will do for now though.
-                # Example request that needs this:
-                # http://www.whatdotheyknow.com/request/2923/response/7013/attach/2/Cycle%20Path%20Bank.txt
-                if leaf.within_rfc822_attachment == leaf && leaf.content_type == 'text/plain'
-                    headers = ""
-                    for header in [ 'Date', 'Subject', 'From', 'To', 'Cc' ]
-                        if leaf.within_rfc822_attachment.header.include?(header.downcase)
-                            header_value = leaf.within_rfc822_attachment.header[header.downcase]
-                            # Example message which has a blank Date header:
-                            # http://www.whatdotheyknow.com/request/30747/response/80253/attach/html/17/Common%20Purpose%20Advisory%20Group%20Meeting%20Tuesday%202nd%20March.txt.html
-                            if !header_value.blank?
-                                headers = headers + header + ": " + header_value.to_s + "\n"
-                            end
-                        end
-                    end
-                    # XXX call _convert_part_body_to_text here, but need to get charset somehow
-                    # e.g. http://www.whatdotheyknow.com/request/1593/response/3088/attach/4/Freedom%20of%20Information%20request%20-%20car%20oval%20sticker:%20Article%2020,%20Convention%20on%20Road%20Traffic%201949.txt
-                    body = headers + "\n" + body
-
-                    # This is quick way of getting all headers, but instead we only add some a) to
-                    # make it more usable, b) as at least one authority accidentally leaked security
-                    # information into a header.
-                    #attachment.body = leaf.within_rfc822_attachment.port.to_s
-                end
-            end
-            hexdigest = Digest::MD5.hexdigest(body)
-            attachment = self.foi_attachments.find_or_create_by_hexdigest(:hexdigest => hexdigest)
+        attachment_attributes = MailParsing.get_attachment_attributes(self.mail(force))
+        attachment_ids = []
+        attachment_attributes.each do |attrs|
+            leaf = attrs[:leaf]
+            attachment = self.foi_attachments.find_or_create_by_hexdigest(:hexdigest => attrs[:hexdigest])
             attachment.update_attributes(:url_part_number => leaf.url_part_number,
                                          :content_type => leaf.content_type,
                                          :filename => MailParsing.get_part_file_name(leaf),
                                          :charset => leaf.charset,
-                                         :within_rfc822_subject => within_rfc822_subject,
-                                         :body => body)
+                                         :within_rfc822_subject => attrs[:within_rfc822_subject],
+                                         :body => attrs[:body])
             attachment.save!
-            attachments << attachment.id
+            attachment_ids << attachment.id
         end
         main_part = get_main_body_text_part
         # we don't use get_main_body_text_internal, as we want to avoid charset
@@ -697,17 +613,22 @@ class IncomingMessage < ActiveRecord::Base
         # e.g. for https://secure.mysociety.org/admin/foi/request/show_raw_email/24550
         if !main_part.nil?
             uudecoded_attachments = _uudecode_and_save_attachments(main_part.body)
-            c = @count_first_uudecode_count
+            c = self.mail.count_first_uudecode_count
             for uudecode_attachment in uudecoded_attachments
                 c += 1
                 uudecode_attachment.url_part_number = c
                 uudecode_attachment.save!
-                attachments << uudecode_attachment.id
+                attachment_ids << uudecode_attachment.id
             end
         end
 
         # now get rid of any attachments we no longer have
-        FoiAttachment.destroy_all("id NOT IN (#{attachments.join(',')}) AND incoming_message_id = #{self.id}")
+        if attachment_ids.empty?
+            FoiAttachment.destroy_all("incoming_message_id = #{self.id}")
+        else
+            FoiAttachment.destroy_all("id NOT IN (#{attachment_ids.join(',')})
+                                      AND incoming_message_id = #{self.id}")
+        end
    end
 
     # Returns body text as HTML with quotes flattened, and emails removed.
