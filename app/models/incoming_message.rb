@@ -83,7 +83,7 @@ class IncomingMessage < ActiveRecord::Base
         if self.mail.from_addrs.nil? || self.mail.from_addrs.size == 0
             return false
         end
-        email = MailParsing.get_from_address(mail)
+        email = self.mail.from_addrs[0].spec
         if !MySociety::Validate.is_valid_email(email)
             return false
         end
@@ -94,7 +94,7 @@ class IncomingMessage < ActiveRecord::Base
         prefix = email
         prefix =~ /^(.*)@/
         prefix = $1
-        if !prefix.nil? && prefix.downcase.match(/^(postmaster|mailer-daemon|auto_reply|donotreply|no.reply)$/)
+        if !prefix.nil? && prefix.downcase.match(/^(postmaster|mailer-daemon|auto_reply|do.?not.?reply|no.reply)$/)
             return false
         end
         if !self.mail['return-path'].nil? && self.mail['return-path'].addr == "<>"
@@ -874,35 +874,6 @@ class IncomingMessage < ActiveRecord::Base
     # Return space separated list of all file extensions known
     def IncomingMessage.get_all_file_extensions
         return AlaveteliFileTypes.all_extensions.join(" ")
-    end
-
-    # Return false if for some reason this is a message that we shouldn't let them reply to
-    def valid_to_reply_to?
-        # check validity of email
-        if self.mail.from_addrs.nil? || self.mail.from_addrs.size == 0
-            return false
-        end
-        email = self.mail.from_addrs[0].spec
-        if !MySociety::Validate.is_valid_email(email)
-            return false
-        end
-
-        # reject postmaster - authorities seem to nearly always not respond to
-        # email to postmaster, and it tends to only happen after delivery failure.
-        # likewise Mailer-Daemon, Auto_Reply...
-        prefix = email
-        prefix =~ /^(.*)@/
-        prefix = $1
-        if !prefix.nil? && prefix.downcase.match(/^(postmaster|mailer-daemon|auto_reply|do.?not.?reply|no.reply)$/)
-            return false
-        end
-        if !self.mail['return-path'].nil? && self.mail['return-path'].addr == "<>"
-            return false
-        end
-        if !self.mail['auto-submitted'].nil?
-            return false
-        end
-        return true
     end
 
   def for_admin_column
