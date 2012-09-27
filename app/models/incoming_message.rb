@@ -706,7 +706,7 @@ class IncomingMessage < ActiveRecord::Base
             filename = uu.match(/^begin\s+[0-9]+\s+(.*)$/)[1]
             calc_mime = AlaveteliFileTypes.filename_and_content_to_mimetype(filename, content)
             if calc_mime
-                calc_mime = normalise_content_type(calc_mime)
+                calc_mime = MailParsing.normalise_content_type(calc_mime)
                 content_type = calc_mime
             else
                 content_type = 'application/octet-stream'
@@ -1080,36 +1080,11 @@ class IncomingMessage < ActiveRecord::Base
         return true
     end
 
-    def normalise_content_type(content_type)
-        # e.g. http://www.whatdotheyknow.com/request/93/response/250
-        if content_type == 'application/excel' or content_type == 'application/msexcel' or content_type == 'application/x-ms-excel'
-            content_type = 'application/vnd.ms-excel'
-        end
-        if content_type == 'application/mspowerpoint' or content_type == 'application/x-ms-powerpoint'
-            content_type = 'application/vnd.ms-powerpoint'
-        end
-        if content_type == 'application/msword' or content_type == 'application/x-ms-word'
-            content_type = 'application/vnd.ms-word'
-        end
-        if content_type == 'application/x-zip-compressed'
-            content_type = 'application/zip'
-        end
-
-        # e.g. http://www.whatdotheyknow.com/request/copy_of_current_swessex_scr_opt#incoming-9928
-        if content_type == 'application/acrobat'
-            content_type = 'application/pdf'
-        end
-
-        return content_type
-    end
-
   def for_admin_column
     self.class.content_columns.each do |column|
       yield(column.human_name, self.send(column.name), column.type.to_s, column.name)
     end
   end
-
-  private :normalise_content_type
 
 end
 
