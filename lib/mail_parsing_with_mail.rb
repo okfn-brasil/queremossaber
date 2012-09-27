@@ -79,5 +79,13 @@ module MailParsingWithMail
         mail_part.body.decoded
     end
 
+    def MailParsingWithMail.get_attachment_leaves(mail)
+        []
+    end
+
+    def MailParsingWithMail.get_attachment_attributes(mail)
+        []
+    end
+
 end
 
