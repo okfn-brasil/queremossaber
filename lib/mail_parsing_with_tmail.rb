@@ -6,6 +6,29 @@ module TMail
         attr_accessor :within_rfc822_attachment # for parts within a message attached as text (for getting subject mainly)
         attr_accessor :count_parts_count
         attr_accessor :count_first_uudecode_count
+        # Monkeypatch!
+        # Bug fix to this function - is for message in humberside-police-odd-mime-type.email
+        # Which was originally: https://secure.mysociety.org/admin/foi/request/show_raw_email/11209
+        # See test in spec/lib/tmail_extensions.rb
+        def set_content_type( str, sub = nil, param = nil )
+          if sub
+            main, sub = str, sub
+          else
+            main, sub = str.split(%r</>, 2)
+            raise ArgumentError, "sub type missing: #{str.inspect}" unless sub
+          end
+          if h = @header['content-type']
+            h.main_type = main
+            h.sub_type  = sub
+            h.params.clear if !h.params.nil? # XXX this if statement is the fix # XXX disabled until works with test
+          else
+            store 'Content-Type', "#{main}/#{sub}"
+          end
+          @header['content-type'].params.replace param if param
+          str
+        end
+        # Need to make sure this alias calls the Monkeypatch too
+        alias content_type= set_content_type
     end
 end
 

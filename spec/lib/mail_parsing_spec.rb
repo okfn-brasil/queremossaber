@@ -26,6 +26,11 @@ describe 'when parsing mail with the tmail or mail gem' do
             mail.to.should == ["request-66666-caa77777@whatdotheyknow.com", "foi@example.com"]
         end
 
+        it "should parse an email with funny MIME settings" do
+            mail = get_mail("humberside-police-odd-mime-type.email")
+            lambda{ MailParsing.get_attachment_leaves(mail) }.should_not raise_error
+        end
+
     end
 
 

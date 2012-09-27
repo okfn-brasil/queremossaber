@@ -43,30 +43,6 @@ module TMail
             return val ? [val,] : []
         end
 
-        # Monkeypatch!
-        # Bug fix to this function - is for message in humberside-police-odd-mime-type.email
-        # Which was originally: https://secure.mysociety.org/admin/foi/request/show_raw_email/11209
-        # See test in spec/lib/tmail_extensions.rb
-        def set_content_type( str, sub = nil, param = nil )
-          if sub
-            main, sub = str, sub
-          else
-            main, sub = str.split(%r</>, 2)
-            raise ArgumentError, "sub type missing: #{str.inspect}" unless sub
-          end
-          if h = @header['content-type']
-            h.main_type = main
-            h.sub_type  = sub
-            h.params.clear if !h.params.nil? # XXX this if statement is the fix # XXX disabled until works with test
-          else
-            store 'Content-Type', "#{main}/#{sub}"
-          end
-          @header['content-type'].params.replace param if param
-          str
-        end
-        # Need to make sure this alias calls the Monkeypatch too
-        alias content_type= set_content_type
-
     end
 
     class Address
@@ -96,8 +72,8 @@ module TMail
     end
 end
 
-# Monkeypatch! TMail 1.2.7.1 will parse only one address out of a list of addresses with 
-# unquoted display parts https://github.com/mikel/tmail/issues#issue/9 - this monkeypatch 
+# Monkeypatch! TMail 1.2.7.1 will parse only one address out of a list of addresses with
+# unquoted display parts https://github.com/mikel/tmail/issues#issue/9 - this monkeypatch
 # fixes this issue.
 module TMail
 
