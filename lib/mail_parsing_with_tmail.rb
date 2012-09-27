@@ -115,7 +115,7 @@ module MailParsingWithTmail
             # PDFs often come with this mime type, fix it up for view code
             if curr_mail.content_type == 'application/octet-stream'
                 part_file_name = self.get_part_file_name(curr_mail)
-                part_body = MailParsing.get_part_body(curr_mail)
+                part_body = get_part_body(curr_mail)
                 calc_mime = AlaveteliFileTypes.filename_and_content_to_mimetype(part_file_name, part_body)
                 if calc_mime
                     curr_mail.content_type = calc_mime
@@ -171,7 +171,7 @@ module MailParsingWithTmail
                 _count_parts_recursive(p, parent_mail)
             end
         else
-            part_filename = MailParsing.get_part_file_name(part)
+            part_filename = get_part_file_name(part)
             begin
                 if part.content_type == 'message/rfc822'
                     # An email attached as text
