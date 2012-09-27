@@ -133,11 +133,11 @@ describe IncomingMessage, " folding quoted parts of emails" do
 end
 
 describe IncomingMessage, " checking validity to reply to" do
-    def test_email(result, email, return_path, autosubmitted = nil)
+    def test_email(result, email, empty_return_path, autosubmitted = nil)
 
         @mail = mock('mail')
         MailParsing.stub!(:get_from_address).and_return(email)
-        MailParsing.stub!(:get_return_path_address).with(@mail).and_return(return_path)
+        MailParsing.stub!(:empty_return_path?).with(@mail).and_return(empty_return_path)
         MailParsing.stub!(:get_auto_submitted).with(@mail).and_return(autosubmitted)
 
         @incoming_message = IncomingMessage.new()
@@ -170,11 +170,11 @@ describe IncomingMessage, " checking validity to reply to" do
     end
 
     it "says a filled-out return-path is fine" do
-        test_email(true, "team@mysociety.org", "<foo@baz.com>")
+        test_email(true, "team@mysociety.org", false)
     end
 
     it "says an empty return-path is bad" do
-        test_email(false, "team@mysociety.org", "<>")
+        test_email(false, "team@mysociety.org", true)
     end
 
     it "says an auto-submitted keyword is bad" do
