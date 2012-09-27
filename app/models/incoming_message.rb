@@ -72,18 +72,13 @@ class IncomingMessage < ActiveRecord::Base
         @mail
     end
 
-    # Returns the name of the person the incoming message is from, or nil if
-    # there isn't one or if there is only an email address. XXX can probably
-    # remove from_name_if_present (which is a monkey patch) by just calling
-    # .from_addrs[0].name here instead?
-
     # Return false if for some reason this is a message that we shouldn't let them reply to
     def _calculate_valid_to_reply_to
         # check validity of email
-        if self.mail.from_addrs.nil? || self.mail.from_addrs.size == 0
+        email = MailParsing.get_from_address(mail)
+        if email.nil?
             return false
         end
-        email = self.mail.from_addrs[0].spec
         if !MySociety::Validate.is_valid_email(email)
             return false
         end
@@ -97,10 +92,10 @@ class IncomingMessage < ActiveRecord::Base
         if !prefix.nil? && prefix.downcase.match(/^(postmaster|mailer-daemon|auto_reply|do.?not.?reply|no.reply)$/)
             return false
         end
-        if !self.mail['return-path'].nil? && self.mail['return-path'].addr == "<>"
+        if MailParsing.empty_return_path?(self.mail)
             return false
         end
-        if !self.mail['auto-submitted'].nil?
+        if !MailParsing.get_auto_submitted(self.mail).nil?
             return false
         end
         return true
