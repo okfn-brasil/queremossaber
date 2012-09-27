@@ -34,14 +34,6 @@ load "util.rb"
 # and adds fallback gem call removed in https://github.com/rails/rails/commit/4c3725723f15fab0a424cb1318b82b460714b72f
 require File.join(File.dirname(__FILE__), '../lib/old_rubygems_patch')
 
-if RUBY_VERSION.to_f >= 1.9
-    require 'mail_parsing_with_mail'
-    MailParsing = MailParsingWithMail
-else
-    require 'mail_parsing_with_tmail'
-    MailParsing = MailParsingWithTmail
-end
-
 # Application version
 ALAVETELI_VERSION = '0.6.6'
 
@@ -91,6 +83,15 @@ Rails::Initializer.run do |config|
   # See Rails::Configuration for more options
   ENV['RECAPTCHA_PUBLIC_KEY'] = MySociety::Config::get("RECAPTCHA_PUBLIC_KEY", 'x');
   ENV['RECAPTCHA_PRIVATE_KEY'] = MySociety::Config::get("RECAPTCHA_PRIVATE_KEY", 'x');
+end
+
+require 'mail_parsing_general'
+if RUBY_VERSION.to_f >= 1.9
+    require 'mail_parsing_with_mail'
+    MailParsing = MailParsingWithMail
+else
+    require 'mail_parsing_with_tmail'
+    MailParsing = MailParsingWithTmail
 end
 
 # Add new inflection rules using the following format

@@ -8,7 +8,6 @@ module TMail
         attr_accessor :count_first_uudecode_count
         # Monkeypatch!
         # Bug fix to this function - is for message in humberside-police-odd-mime-type.email
-        # Which was originally: https://secure.mysociety.org/admin/foi/request/show_raw_email/11209
         # See test in spec/lib/tmail_extensions.rb
         def set_content_type( str, sub = nil, param = nil )
           if sub
