@@ -187,7 +187,7 @@ class IncomingMessage < ActiveRecord::Base
                 _count_parts_recursive(p)
             end
         else
-            part_filename = TMail::Mail.get_part_file_name(part)
+            part_filename = MailParsing.get_part_file_name(part)
             begin
                 if part.content_type == 'message/rfc822'
                     # An email attached as text
@@ -438,16 +438,6 @@ class IncomingMessage < ActiveRecord::Base
         text.gsub!(/<\?xml:namespace[^>]*\/>/, " ")
 
         return text
-    end
-
-    # Internal function
-    def _get_part_file_name(mail)
-        part_file_name =  MailParsing.get_part_file_name(mail)
-        if part_file_name.nil?
-            return nil
-        end
-        part_file_name = part_file_name.dup
-        return part_file_name
     end
 
     # (This risks losing info if the unchosen alternative is the only one to contain
@@ -780,7 +770,7 @@ class IncomingMessage < ActiveRecord::Base
             attachment = self.foi_attachments.find_or_create_by_hexdigest(:hexdigest => hexdigest)
             attachment.update_attributes(:url_part_number => leaf.url_part_number,
                                          :content_type => leaf.content_type,
-                                         :filename => _get_part_file_name(leaf),
+                                         :filename => MailParsing.get_part_file_name(leaf),
                                          :charset => leaf.charset,
                                          :within_rfc822_subject => within_rfc822_subject,
                                          :body => body)

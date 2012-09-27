@@ -41,7 +41,12 @@ module MailParsingWithTmail
     end
 
     def MailParsingWithTmail.get_part_file_name(mail_part)
-        TMail::Mail.get_part_file_name(mail_part)
+        part_file_name = TMail::Mail.get_part_file_name(mail_part)
+        if part_file_name.nil?
+            return nil
+        end
+        part_file_name = part_file_name.dup
+        return part_file_name
     end
 
     def MailParsingWithTmail.get_part_body(mail_part)
