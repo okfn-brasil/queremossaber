@@ -558,7 +558,7 @@ class IncomingMessage < ActiveRecord::Base
             filename = uu.match(/^begin\s+[0-9]+\s+(.*)$/)[1]
             calc_mime = AlaveteliFileTypes.filename_and_content_to_mimetype(filename, content)
             if calc_mime
-                calc_mime = MailParsing.normalise_content_type(calc_mime)
+                calc_mime = MailParsingGeneral.normalise_content_type(calc_mime)
                 content_type = calc_mime
             else
                 content_type = 'application/octet-stream'

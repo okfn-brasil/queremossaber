@@ -12,6 +12,8 @@ end
 
 module MailParsingWithTmail
 
+    include MailParsingGeneral
+
     def MailParsingWithTmail.mail_from_raw_email(data)
         # Hack round bug in TMail's MIME decoding. Example request which provokes it:
         # http://www.whatdotheyknow.com/request/reviews_of_unduly_lenient_senten#incoming-4830
@@ -115,7 +117,7 @@ module MailParsingWithTmail
             end
 
             # Use standard content types for Word documents etc.
-            curr_mail.content_type = normalise_content_type(curr_mail.content_type)
+            curr_mail.content_type = MailParsingGeneral::normalise_content_type(curr_mail.content_type)
             if curr_mail.content_type == 'message/rfc822'
                 ensure_parts_counted(parent_mail)# fills in rfc822_attachment variable
                 if curr_mail.rfc822_attachment.nil?
@@ -143,29 +145,6 @@ module MailParsingWithTmail
             curr_mail.charset = charset
         end
         return leaves_found
-    end
-
-    def MailParsingWithTmail.normalise_content_type(content_type)
-        # e.g. http://www.whatdotheyknow.com/request/93/response/250
-        if content_type == 'application/excel' or content_type == 'application/msexcel' or content_type == 'application/x-ms-excel'
-            content_type = 'application/vnd.ms-excel'
-        end
-        if content_type == 'application/mspowerpoint' or content_type == 'application/x-ms-powerpoint'
-            content_type = 'application/vnd.ms-powerpoint'
-        end
-        if content_type == 'application/msword' or content_type == 'application/x-ms-word'
-            content_type = 'application/vnd.ms-word'
-        end
-        if content_type == 'application/x-zip-compressed'
-            content_type = 'application/zip'
-        end
-
-        # e.g. http://www.whatdotheyknow.com/request/copy_of_current_swessex_scr_opt#incoming-9928
-        if content_type == 'application/acrobat'
-            content_type = 'application/pdf'
-        end
-
-        return content_type
     end
 
     # Number the attachments in depth first tree order, for use in URLs.
