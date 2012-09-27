@@ -134,18 +134,11 @@ end
 
 describe IncomingMessage, " checking validity to reply to" do
     def test_email(result, email, return_path, autosubmitted = nil)
-        @address = mock(TMail::Address)
-        @address.stub!(:spec).and_return(email)
 
-        @return_path = mock(TMail::ReturnPathHeader)
-        @return_path.stub!(:addr).and_return(return_path)
-        if !autosubmitted.nil?
-            @autosubmitted = TMail::UnstructuredHeader.new("auto-submitted", autosubmitted)
-        end
-        @mail = mock(TMail::Mail)
-        @mail.stub!(:from_addrs).and_return( [ @address ] )
-        @mail.stub!(:[]).with("return-path").and_return(@return_path)
-        @mail.stub!(:[]).with("auto-submitted").and_return(@autosubmitted)
+        @mail = mock('mail')
+        MailParsing.stub!(:get_from_address).and_return(email)
+        MailParsing.stub!(:get_return_path_address).with(@mail).and_return(return_path)
+        MailParsing.stub!(:get_auto_submitted).with(@mail).and_return(autosubmitted)
 
         @incoming_message = IncomingMessage.new()
         @incoming_message.stub!(:mail).and_return(@mail)
@@ -177,7 +170,7 @@ describe IncomingMessage, " checking validity to reply to" do
     end
 
     it "says a filled-out return-path is fine" do
-        test_email(true, "team@mysociety.org", "Return-path: <foo@baz.com>")
+        test_email(true, "team@mysociety.org", "<foo@baz.com>")
     end
 
     it "says an empty return-path is bad" do
