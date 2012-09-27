@@ -317,7 +317,7 @@ class AdminRequestController < AdminController
 
             # 1. Use domain of email to try and guess which public body it
             # is associated with, so we can display that.
-            email = @raw_email.incoming_message.mail.from_addrs[0].spec
+            email = MailParsing.get_from_address(@raw_email.incoming_message.mail)
             domain = PublicBody.extract_domain_from_email(email)
 
             if domain.nil?
