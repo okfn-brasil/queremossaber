@@ -83,7 +83,7 @@ class IncomingMessage < ActiveRecord::Base
         if self.mail.from_addrs.nil? || self.mail.from_addrs.size == 0
             return false
         end
-        email = self.mail.from_addrs[0].spec
+        email = MailParsing.get_from_address(mail)
         if !MySociety::Validate.is_valid_email(email)
             return false
         end
@@ -121,7 +121,7 @@ class IncomingMessage < ActiveRecord::Base
                 # XXX can probably remove from_name_if_present (which is a
                 # monkey patch) by just calling .from_addrs[0].name here
                 # instead?
-                self.mail_from = self.mail.from_name_if_present
+                self.mail_from = MailParsing.get_from_name(self.mail)
                 begin
                     self.mail_from_domain = PublicBody.extract_domain_from_email(self.mail.from_addrs[0].spec)
                 rescue NoMethodError
