@@ -27,10 +27,5 @@ describe "when using TMail" do
         incoming_message.get_body_for_html_display()
     end
 
-    it 'should parse multiple to addresses with unqoted display names' do
-        mail = TMail::Mail.parse(load_file_fixture('multiple-unquoted-display-names.email'))
-        mail.to.should == ["request-66666-caa77777@whatdotheyknow.com", "foi@example.com"]
-    end
-
 end
 

@@ -15,13 +15,16 @@ describe 'when parsing mail with the tmail or mail gem' do
             mail.multipart?.should == true
         end
 
-
         it 'should convert an iso-8859-2 email to utf8' do
             mail = get_mail('iso8859_2_raw_email.email')
             mail.subject.should have_text(/gjatë/u)
             MailParsing.get_part_body(mail).is_utf8?.should == true
         end
 
+        it 'should parse multiple to addresses with unqoted display names' do
+            mail = get_mail('multiple-unquoted-display-names.email')
+            mail.to.should == ["request-66666-caa77777@whatdotheyknow.com", "foi@example.com"]
+        end
 
     end
 
