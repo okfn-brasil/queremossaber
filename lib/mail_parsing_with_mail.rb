@@ -33,7 +33,8 @@ module MailParsingWithMail
             if first_from.is_a?(String)
                 return nil
             else
-                return first_from.name
+                return first_from.display_name ? "#{first_from.display_name.to_s}" : nil
+
             end
         else
             return nil
@@ -86,6 +87,20 @@ module MailParsingWithMail
     def MailParsingWithMail.get_attachment_attributes(mail)
         []
     end
+
+    def MailParsingWithMail.address_from_name_and_email(name, email)
+        if !MySociety::Validate.is_valid_email(email)
+            raise "invalid email " + email + " passed to address_from_name_and_email"
+        end
+        if name.nil?
+            return Mail::Address.new(email)
+        end
+        address = Mail::Address.new
+        address.display_name = name
+        address.address = email
+        return address
+    end
+
 
 end
 

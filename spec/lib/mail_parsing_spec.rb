@@ -7,6 +7,12 @@ describe 'when parsing mail with the tmail or mail gem' do
         MailParsing.mail_from_raw_email(load_file_fixture(filename))
     end
 
+    def create_message_from(from_field)
+        mail_data = load_file_fixture('incoming-request-plain.email')
+        mail_data.gsub!('EMAIL_FROM', from_field)
+        mail = MailParsing.mail_from_raw_email(mail_data)
+    end
+
     describe 'when asked to create a mail from raw email data' do
 
         it 'should correctly parse a multipart email with a linebreak in the boundary' do
@@ -108,14 +114,13 @@ describe 'when parsing mail with the tmail or mail gem' do
             mail = get_mail('incoming-request-oft-attachments.email')
             MailParsing.get_from_address(mail).should == 'public@authority.gov.uk'
         end
+
     end
 
     describe 'when asked for the from name' do
 
         it 'should return nil if there is a blank "From" field' do
-            mail_data = load_file_fixture('incoming-request-plain.email')
-            mail_data.gsub!('EMAIL_FROM', '')
-            mail = MailParsing.mail_from_raw_email(mail_data)
+            mail = create_message_from('')
             MailParsing.get_from_name(mail).should == nil
         end
 
@@ -133,6 +138,56 @@ describe 'when parsing mail with the tmail or mail gem' do
             mail = get_mail('track-response-webshield-bounce.email')
             MailParsing.get_from_name(mail).should == nil
         end
+
+    end
+
+    describe 'when deriving a name, email and formatted address from a message from line' do
+
+        def should_render_from_address(from_line, expected_result)
+            mail = create_message_from(from_line)
+            name = MailParsing.get_from_name(mail)
+            email = MailParsing.get_from_address(mail)
+            address = MailParsing.address_from_name_and_email(name, email).to_s
+            [name, email, address].should == expected_result
+        end
+
+        it 'should correctly reproduce a simple name and email that does not need quotes' do
+            should_render_from_address('"FOI Person" <foiperson@localhost>',
+                                       ['FOI Person',
+                                        'foiperson@localhost',
+                                        'FOI Person <foiperson@localhost>'])
+        end
+
+        it 'should render an address with no name' do
+            should_render_from_address("foiperson@localhost",
+                                       [nil,
+                                        "foiperson@localhost",
+                                        "foiperson@localhost"])
+        end
+
+        it 'should quote a name with a square bracked in it' do
+            should_render_from_address('"FOI [ Person" <foiperson@localhost>',
+                                       ['FOI [ Person',
+                                        'foiperson@localhost',
+                                        '"FOI [ Person" <foiperson@localhost>'])
+        end
+
+        it 'should quote a name with an @ in it' do
+            should_render_from_address('"FOI @ Person" <foiperson@localhost>',
+                                       ['FOI @ Person',
+                                        'foiperson@localhost',
+                                        '"FOI @ Person" <foiperson@localhost>'])
+        end
+
+
+        it 'should quote a name with quotes in it' do
+            should_render_from_address('"FOI \" Person" <foiperson@localhost>',
+                                       ['FOI " Person',
+                                        'foiperson@localhost',
+                                        '"FOI \" Person" <foiperson@localhost>'])
+        end
+
+
 
     end
 

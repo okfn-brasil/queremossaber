@@ -49,7 +49,9 @@ class OutgoingMailer < ApplicationMailer
             return info_request.recipient_name_and_email
         else
             # calling safe_mail_from from so censor rules are run
-            return TMail::Address.address_from_name_and_email(incoming_message_followup.safe_mail_from, MailParsing.get_from_address(incoming_message_followup.mail)).to_s
+            from_address = MailParsing.get_from_address(incoming_message_followup.mail)
+            return MailParsing.address_from_name_and_email(incoming_message_followup.safe_mail_from,
+                                                           from_address).to_s
         end
     end
     # Used in the preview of followup

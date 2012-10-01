@@ -29,6 +29,7 @@ module TMail
         # Need to make sure this alias calls the Monkeypatch too
         alias content_type= set_content_type
     end
+
 end
 
 
@@ -44,11 +45,12 @@ module MailParsingWithTmail
         return mail
     end
 
-    # XXX can probably remove from_name_if_present (which is a
-    # monkey patch) by just calling .from_addrs[0].name here
-    # instead?
     def MailParsingWithTmail.get_from_name(mail)
-        mail.from_name_if_present
+        if mail.from && mail.from_addrs[0].name
+            return TMail::Unquoter.unquote_and_convert_to(mail.from_addrs[0].name, "utf-8")
+        else
+            return nil
+        end
     end
 
     def MailParsingWithTmail.get_from_address(mail)
@@ -275,6 +277,19 @@ module MailParsingWithTmail
             attachments << leaf_attributes
         end
         return attachments
+    end
+
+    def MailParsingWithTmail.address_from_name_and_email(name, email)
+        if !MySociety::Validate.is_valid_email(email)
+            raise "invalid email " + email + " passed to address_from_name_and_email"
+        end
+        if name.nil?
+            return TMail::Address.parse(email)
+        end
+        # Botch an always quoted RFC address, then parse it
+        name = name.gsub(/(["\\])/, "\\\\\\1")
+        return TMail::Address.parse('"' + name + '" <' + email + '>')
+
     end
 
 end

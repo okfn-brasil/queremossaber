@@ -27,15 +27,6 @@ module TMail
             file_name
         end
 
-        # Monkeypatch! Return the name part of from address, or nil if there isn't one
-        def from_name_if_present
-            if self.from && self.from_addrs[0].name
-                return TMail::Unquoter.unquote_and_convert_to(self.from_addrs[0].name, "utf-8")
-            else
-                return nil
-            end
-        end
-
         # Monkeypatch! Generalisation of To:, Cc:
         def envelope_to(default = nil)
             # XXX assumes only one envelope-to, and no parsing needed
@@ -43,22 +34,6 @@ module TMail
             return val ? [val,] : []
         end
 
-    end
-
-    class Address
-        # Monkeypatch! Constructor which makes a TMail::Address given
-        # a name and an email
-        def Address.address_from_name_and_email(name, email)
-            if !MySociety::Validate.is_valid_email(email)
-                raise "invalid email " + email + " passed to address_from_name_and_email"
-            end
-            if name.nil?
-                return TMail::Address.parse(email)
-            end
-            # Botch an always quoted RFC address, then parse it
-            name = name.gsub(/(["\\])/, "\\\\\\1")
-            return TMail::Address.parse('"' + name + '" <' + email + '>')
-        end
     end
 
     module TextUtils
