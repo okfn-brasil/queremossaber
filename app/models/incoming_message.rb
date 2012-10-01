@@ -114,9 +114,10 @@ class IncomingMessage < ActiveRecord::Base
                 self.sent_at = self.mail.date || self.created_at
                 self.subject = self.mail.subject
                 self.mail_from = MailParsing.get_from_name(self.mail)
-                begin
-                    self.mail_from_domain = PublicBody.extract_domain_from_email(self.mail.from_addrs[0].spec)
-                rescue NoMethodError
+                from_address = MailParsing.get_from_address(self.mail)
+                if from_address
+                    self.mail_from_domain = PublicBody.extract_domain_from_email(from_address)
+                else
                     self.mail_from_domain = ""
                 end
                 self.valid_to_reply_to = self._calculate_valid_to_reply_to
