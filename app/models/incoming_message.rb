@@ -63,8 +63,6 @@ class IncomingMessage < ActiveRecord::Base
         'application/zip' => 1,
     }
 
-    # Return the structured TMail::Mail object
-    # Documentation at http://i.loveruby.net/en/projects/tmail/doc/
     def mail(force = nil)
         if (!force.nil? || @mail.nil?) && !self.raw_email.nil?
             @mail = MailParsing.mail_from_raw_email(self.raw_email.data)

@@ -37,6 +37,8 @@ module MailParsingWithTmail
 
     include MailParsingGeneral
 
+    # Return the structured TMail::Mail object
+    # Documentation at http://i.loveruby.net/en/projects/tmail/doc/
     def MailParsingWithTmail.mail_from_raw_email(data)
         # Hack round bug in TMail's MIME decoding.
         copy_of_raw_data = data.gsub(/; boundary=\s+"/im,'; boundary="')
