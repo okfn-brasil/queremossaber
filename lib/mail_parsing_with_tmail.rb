@@ -294,4 +294,70 @@ module MailParsingWithTmail
 
     end
 
+    def MailParsingWithTmail.sanitize_text(text, source_charset)
+         # If TMail can't convert text, it just returns it, so we sanitise it.
+        begin
+            # Test if it's good UTF-8
+            text = Iconv.conv('utf-8', 'utf-8', text)
+        rescue Iconv::IllegalSequence
+            # Text looks like unlabelled nonsense,
+            # strip out anything that isn't UTF-8
+            begin
+                text = Iconv.conv('utf-8//IGNORE', source_charset, text) +
+                    _("\n\n[ {{site_name}} note: The above text was badly encoded, and has had strange characters removed. ]",
+                      :site_name => MySociety::Config.get('SITE_NAME', 'Alaveteli'))
+            rescue Iconv::InvalidEncoding, Iconv::IllegalSequence
+                if source_charset != "utf-8"
+                    source_charset = "utf-8"
+                    retry
+                end
+            end
+        end
+        return text
+    end
+
+    # Given a main text part, converts it to text
+    def MailParsingWithTmail.convert_part_body_to_text(part)
+        if part.nil?
+            text = "[ Email has no body, please see attachments ]"
+            source_charset = "utf-8"
+        else
+            text = part.body # by default, TMail converts to UTF8 in this call
+            source_charset = part.charset
+            if part.content_type == 'text/html'
+                # e.g. http://www.whatdotheyknow.com/request/35/response/177
+                # XXX This is a bit of a hack as it is calling a
+                # convert to text routine.  Could instead call a
+                # sanitize HTML one.
+
+                # If the text isn't UTF8, it means TMail had a problem
+                # converting it (invalid characters, etc), and we
+                # should instead tell elinks to respect the source
+                # charset
+                use_charset = "utf-8"
+                begin
+                    text = Iconv.conv('utf-8', 'utf-8', text)
+                rescue Iconv::IllegalSequence
+                    use_charset = source_charset
+                end
+                text = MailParsingGeneral._get_attachment_text_internal_one_file(part.content_type, text, use_charset)
+            end
+        end
+
+        text = MailParsing.sanitize_text(text, source_charset)
+
+        # Fix DOS style linefeeds to Unix style ones (or other later regexps won't work)
+        # Needed for e.g. http://www.whatdotheyknow.com/request/60/response/98
+        text = text.gsub(/\r\n/, "\n")
+
+        # Compress extra spaces down to save space, and to stop regular expressions
+        # breaking in strange extreme cases. e.g. for
+        # http://www.whatdotheyknow.com/request/spending_on_consultants
+        text = text.gsub(/ +/, " ")
+
+        return text
+    end
+
+
+
 end
