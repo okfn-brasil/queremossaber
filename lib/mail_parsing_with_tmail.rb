@@ -228,7 +228,6 @@ module MailParsingWithTmail
     end
 
     def MailParsingWithTmail.get_attachment_attributes(mail)
-        force = true
         leaves = get_attachment_leaves(mail) # XXX check where else this is called from
         # XXX we have to call ensure_parts_counted after get_attachment_leaves
         # which is really messy.
