@@ -12,8 +12,8 @@ gem 'pg'
 
 gem 'fast_gettext', '>= 0.6.0'
 gem 'fastercsv', '>=1.5.5'
-gem 'gettext_i18n_rails', '>= 0.6.0', :git => "git://github.com/sebbacon/gettext_i18n_rails.git"
-gem 'gettext', '>= 1.9.3'
+gem 'gettext_i18n_rails', '>= 0.7.1'
+gem 'gettext', '~> 2.3.3'
 gem 'json', '~> 1.5.1'
 gem 'locale', '>= 2.0.5'
 gem 'mahoro'
@@ -39,15 +39,23 @@ gem 'xapian-full-alaveteli', '~> 1.2.9.5'
 gem 'xml-simple'
 gem 'zip'
 gem 'capistrano'
+gem 'syslog_protocol'
+gem 'newrelic_rpm'
 
 group :test do
   gem 'fakeweb'
   gem 'rspec-rails', '~> 1.3.4'
 end
 
+group :development do
+  gem 'mailcatcher'
+end
+
 group :develop do
   gem 'ruby-debug', :platforms => :ruby_18
   gem 'ruby-debug19', :platforms => :ruby_19
+  gem 'bootstrap-sass'
+  gem 'compass'
   gem 'annotate'
   if RUBY_VERSION.to_f < 1.9
     gem 'ZenTest', '~> 4.5.0', :platforms => :ruby_18

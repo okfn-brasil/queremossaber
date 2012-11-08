@@ -16,7 +16,7 @@ Thread-Topic: Freedom of Information request - An information request about
     stuff
 Thread-Index: AckNqOAr459KZB17Q1OIy1jxNVd9xAAAAnVAAAAWJ+A=
 From: "A responder" <responder@example.com>
-To: "A Person" <request-xxxx@whatdotheyknow.com>
+To: FOI Person <EMAIL_TO>
 
 This is a multi-part message in MIME format.
 
@@ -35,4 +35,3 @@ Content-Disposition: attachment; filename="Mr Gradwick.pdf"
 xxx
 
 ------_=_NextPart_001_01C90DA9.9B158D0D--
-

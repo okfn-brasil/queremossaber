@@ -12,6 +12,14 @@ describe IncomingMessage, " when dealing with incoming mail" do
         ActionMailer::Base.deliveries.clear
     end
 
+    it 'should correctly parse multipart mails with a linebreak in the boundary marker' do
+        ir = info_requests(:fancy_dog_request)
+        receive_incoming_mail('space-boundary.email', ir.incoming_email)
+        message = ir.incoming_messages[1]
+        message.mail.parts.size.should == 2
+        message.mail.multipart?.should == true
+    end
+
     it "should return the mail Date header date for sent at" do
         @im.parse_raw_email!(true)
         @im.reload
@@ -56,6 +64,14 @@ describe IncomingMessage, " when dealing with incoming mail" do
         message.subject.should == "Câmara Responde:  Banco de ideias"
     end
 
+    it 'should not error on display of a message which has no charset set on the body part and
+        is not good utf-8' do
+        ir = info_requests(:fancy_dog_request)
+        receive_incoming_mail('no-part-charset-bad-utf8.email', ir.incoming_email)
+        message = ir.incoming_messages[1]
+        message.parse_raw_email!
+        message.get_main_body_text_internal.should include("The above text was badly encoded")
+    end
 
     it "should fold multiline sections" do
       {
@@ -77,6 +93,7 @@ describe IncomingMessage, "when parsing HTML mail" do
         plain_text = MailParsingGeneral._get_attachment_text_internal_one_file('text/html', html)
         plain_text.should match(/është/)
     end
+
 end
 
 describe IncomingMessage, "when getting the attachment text" do
@@ -115,19 +132,43 @@ end
 
 describe IncomingMessage, " folding quoted parts of emails" do
 
-    it "cope with [ in user names properly" do
-        @user = mock_model(User)
-        @user.stub!(:name).and_return("Sir [ Bobble")
-        @info_request = mock_model(InfoRequest)
-        @info_request.stub!(:user).and_return(@user)
-        @info_request.stub!(:user_name).and_return(@user.name)
+    it 'should fold an example lotus notes quoted part converted from HTML correctly' do
+        ir = info_requests(:fancy_dog_request)
+        receive_incoming_mail('lotus-notes-quoting.email', ir.incoming_email)
+        message = ir.incoming_messages[1]
+        message.get_main_body_text_folded.should match(/FOLDED_QUOTED_SECTION/)
+    end
 
+    it 'should fold a plain text lotus notes quoted part correctly' do
+        text = "FOI Team\n\n\nInfo Requester <xxx@whatdotheyknow.com>=20\nSent by: Info Requester <request-bounce-xxxxx@whatdotheyknow.com>\n06/03/08 10:00\nPlease respond to\nInfo Requester <request-xxxx@whatdotheyknow.com>"
         @incoming_message = IncomingMessage.new()
-        @incoming_message.info_request = @info_request
+        @incoming_message.stub_chain(:info_request, :user_name).and_return("Info Requester")
+        @incoming_message.remove_lotus_quoting(text).should match(/FOLDED_QUOTED_SECTION/)
+    end
 
+    it "cope with [ in user names properly" do
+        @incoming_message = IncomingMessage.new()
+        @incoming_message.stub_chain(:info_request, :user_name).and_return("Sir [ Bobble")
         # this gives a warning if [ is in the name
         text = @incoming_message.remove_lotus_quoting("Sir [ Bobble \nSent by: \n")
         text.should == "\n\nFOLDED_QUOTED_SECTION"
+    end
+
+    it 'should fold an example of another kind of forward quoting' do
+        ir = info_requests(:fancy_dog_request)
+        receive_incoming_mail('forward-quoting-example.email', ir.incoming_email)
+        message = ir.incoming_messages[1]
+        message.get_main_body_text_folded.should match(/FOLDED_QUOTED_SECTION/)
+    end
+
+    it 'should fold a further example of forward quoting' do
+        ir = info_requests(:fancy_dog_request)
+        receive_incoming_mail('forward-quoting-example-2.email', ir.incoming_email)
+        message = ir.incoming_messages[1]
+        body_text = message.get_main_body_text_folded
+        body_text.should match(/FOLDED_QUOTED_SECTION/)
+        # check that the quoted section incorporates both quoted messages
+        body_text.should_not match('Subject: RE: Freedom of Information request')
     end
 
 end
@@ -305,8 +346,7 @@ describe IncomingMessage, " when censoring data" do
     end
 
     it "should apply hard-coded privacy rules to HTML files" do
-        domain = MySociety::Config.get('DOMAIN')
-        data = "http://#{domain}/c/cheese"
+        data = "http://#{Configuration::domain}/c/cheese"
         @im.html_mask_stuff!(data)
         data.should == "[WDTK login link]"
     end

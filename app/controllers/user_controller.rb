@@ -3,8 +3,6 @@
 #
 # Copyright (c) 2007 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: user_controller.rb,v 1.71 2009-09-17 07:51:47 francis Exp $
 
 require 'set'
 
@@ -121,13 +119,13 @@ class UserController < ApplicationController
             @track_things = TrackThing.find(:all, :conditions => ["tracking_user_id = ? and track_medium = ?", @display_user.id, 'email_daily'], :order => 'created_at desc')
             for track_thing in @track_things
                 # XXX factor out of track_mailer.rb
-                xapian_object = InfoRequest.full_search([InfoRequestEvent], track_thing.track_query, 'described_at', true, nil, 20, 1) 
+                xapian_object = InfoRequest.full_search([InfoRequestEvent], track_thing.track_query, 'described_at', true, nil, 20, 1)
                 feed_results += xapian_object.results.map {|x| x[:model]}
             end
         end
 
         @feed_results = Array(feed_results).sort {|x,y| y.created_at <=> x.created_at}.first(20)
-        
+
         respond_to do |format|
             format.html { @has_json = true }
             format.json { render :json => @display_user.json_for_api }
@@ -138,7 +136,7 @@ class UserController < ApplicationController
     # Login form
     def signin
         work_out_post_redirect
-        @request_from_foreign_country = country_from_ip != MySociety::Config.get('ISO_COUNTRY_CODE', 'GB')
+        @request_from_foreign_country = country_from_ip != Configuration::iso_country_code
         # make sure we have cookies
         if session.instance_variable_get(:@dbman)
             if not session.instance_variable_get(:@dbman).instance_variable_get(:@original)
@@ -192,7 +190,7 @@ class UserController < ApplicationController
     # Create new account form
     def signup
         work_out_post_redirect
-        @request_from_foreign_country = country_from_ip != MySociety::Config.get('ISO_COUNTRY_CODE', 'GB')
+        @request_from_foreign_country = country_from_ip != Configuration::iso_country_code
         # Make the user and try to save it
         @user_signup = User.new(params[:user_signup])
         error = false
@@ -246,6 +244,7 @@ class UserController < ApplicationController
         session[:user_circumstance] = nil
         session[:remember_me] = false
         session[:using_admin] = nil
+        session[:admin_name] = nil
     end
     def signout
         self._do_signout

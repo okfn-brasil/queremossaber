@@ -4,8 +4,7 @@
 #
 # Copyright (c) 2007 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: application_helper.rb,v 1.22 2008-07-09 07:24:50 francis Exp $
+
 require 'languages'
 
 module ApplicationHelper
@@ -78,25 +77,6 @@ module ApplicationHelper
         return LanguageNames::get_language_name(locale)
     end
 
-    # Use our own algorithm for finding path of cache
-    def foi_cache(name = {}, options = nil, &block)
-        if @controller.perform_caching
-            key = name.merge(:only_path => true)
-            key_path = @controller.foi_fragment_cache_path(key)
-
-            if @controller.foi_fragment_cache_exists?(key_path)
-                cached = @controller.foi_fragment_cache_read(key_path)
-                output_buffer.concat(cached)
-                return
-            end
-
-            pos = output_buffer.length
-            content = block.call
-            @controller.foi_fragment_cache_write(key_path, output_buffer[pos..-1])
-        else
-            block.call
-        end
-    end
     # (unfortunately) ugly way of getting id of generated form element
     # ids
     # see http://chrisblunt.com/2009/10/12/rails-getting-the-id-of-form-fields-inside-a-fields_for-block/
@@ -109,7 +89,7 @@ module ApplicationHelper
     end
 
     def form_tag_id(object_name, method_name, locale=nil)
-	if locale.nil?
+    if locale.nil?
             return "#{sanitized_object_name(object_name.to_s)}_#{sanitized_method_name(method_name.to_s)}"
         else
             return "#{sanitized_object_name(object_name.to_s)}_#{sanitized_method_name(method_name.to_s)}__#{locale.to_s}"
@@ -130,10 +110,6 @@ module ApplicationHelper
         ago_text = _('{{length_of_time}} ago', :length_of_time => time_ago_in_words(date))
         exact_date = I18n.l(date, :format => "%e %B %Y %H:%M:%S")
         return "#{exact_date} (#{ago_text})"
-    end
-
-    def is_admin?
-        return !session[:using_admin].nil? || (!@user.nil? && @user.admin_level == "super")
     end
 
 end

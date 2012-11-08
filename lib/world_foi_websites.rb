@@ -13,7 +13,7 @@ class WorldFOIWebsites
                               {:name => "Ask The EU",
                                   :country_name => "European Union",
                                   :country_iso_code => "",
-                                  :url => "http://asktheu.org"},
+                                  :url => "http://asktheeu.org"},
                               {:name => "MuckRock.com",
                                   :country_name => "United States of America",
                                   :country_iso_code => "US",
@@ -45,7 +45,16 @@ class WorldFOIWebsites
                               {:name => "Acceso Intelligente",
                                   :country_name => "Chile",
                                   :country_iso_code => "CL",
-                                  :url => "accesointeligente.org"}]
+                                  :url => "http://accesointeligente.org"},
+                              {:name => "Right To Know",
+                                  :country_name => "Australia",
+                                  :country_iso_code => "AU",
+                                  :url => "http://www.righttoknow.org.au"},
+                              {:name => "Informace pro Vsechny",
+                                  :country_name => "Česká republika",
+                                  :country_iso_code => "CZ",
+                                  :url => "http://www.infoprovsechny.cz"}
+                              ]
         return world_foi_websites
     end
 
@@ -54,4 +63,4 @@ class WorldFOIWebsites
         return result
     end
 end
-            
+

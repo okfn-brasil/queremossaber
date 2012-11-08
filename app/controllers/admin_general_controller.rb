@@ -3,8 +3,6 @@
 #
 # Copyright (c) 2007 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: admin_general_controller.rb,v 1.12 2009-10-03 01:28:33 francis Exp $
 
 class AdminGeneralController < AdminController
     def index
@@ -122,7 +120,7 @@ class AdminGeneralController < AdminController
     end
 
     def debug
-        @http_auth_user = admin_http_auth_user
+        @admin_current_user = admin_current_user
         @current_commit = `git log -1 --format="%H"`
         @current_branch = `git branch | perl -ne 'print $1 if /^\\* (.*)/'`
         @current_version = `git describe --always --tags`

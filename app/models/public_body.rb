@@ -1,32 +1,27 @@
-# -*- coding: utf-8 -*-
 # == Schema Information
+# Schema version: 20120919140404
 #
 # Table name: public_bodies
 #
-#  id                 :integer         not null, primary key
-#  name               :text            not null
-#  short_name         :text            not null
-#  request_email      :text            not null
-#  version            :integer         not null
-#  last_edit_editor   :string(255)     not null
-#  last_edit_comment  :text            not null
-#  created_at         :datetime        not null
-#  updated_at         :datetime        not null
-#  url_name           :text            not null
-#  home_page          :text            default(""), not null
-#  notes              :text            default(""), not null
-#  first_letter       :string(255)     not null
-#  publication_scheme :text            default(""), not null
-#  api_key            :string(255)     not null
+#  id                  :integer         not null, primary key
+#  name                :text            not null
+#  short_name          :text            not null
+#  request_email       :text            not null
+#  version             :integer         not null
+#  last_edit_editor    :string(255)     not null
+#  last_edit_comment   :text            not null
+#  created_at          :datetime        not null
+#  updated_at          :datetime        not null
+#  url_name            :text            not null
+#  home_page           :text            default(""), not null
+#  notes               :text            default(""), not null
+#  first_letter        :string(255)     not null
+#  publication_scheme  :text            default(""), not null
+#  api_key             :string(255)     not null
+#  info_requests_count :integer         default(0), not null
 #
-# models/public_body.rb:
-# A public body, from which information can be requested.
-#
-# Copyright (c) 2007 UK Citizens Online Democracy. All rights reserved.
-# Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: public_body.rb,v 1.160 2009-10-02 22:56:35 francis Exp $
 
+# -*- coding: utf-8 -*-
 require 'csv'
 require 'securerandom'
 require 'set'
@@ -47,6 +42,12 @@ class PublicBody < ActiveRecord::Base
     has_tag_string
     before_save :set_api_key, :set_default_publication_scheme
 
+    # Every public body except for the internal admin one is visible
+    named_scope :visible, lambda {
+        {
+            :conditions => "public_bodies.id <> #{PublicBody.internal_admin_body.id}"
+        }
+    }
 
     translates :name, :short_name, :request_email, :url_name, :notes, :first_letter, :publication_scheme
 
@@ -341,7 +342,7 @@ class PublicBody < ActiveRecord::Base
                 pb = PublicBody.new(
                  :name => 'Internal admin authority',
                  :short_name => "",
-                 :request_email => MySociety::Config.get("CONTACT_EMAIL", 'contact@localhost'),
+                 :request_email => Configuration::contact_email,
                  :home_page => "",
                  :notes => "",
                  :publication_scheme => "",
@@ -412,7 +413,7 @@ class PublicBody < ActiveRecord::Base
                         next
                     end
 
-                    field_list = ['name', 'short_name', 'request_email', 'notes', 'publication_scheme', 'home_page', 'tag_string']
+                    field_list = ['name', 'short_name', 'request_email', 'notes', 'publication_scheme', 'disclosure_log', 'home_page', 'tag_string']
 
                     if public_body = bodies_by_name[name]   # Existing public body
                         available_locales.each do |locale|
@@ -499,6 +500,45 @@ class PublicBody < ActiveRecord::Base
         return [errors, notes]
     end
 
+    # Returns all public bodies (except for the internal admin authority) as csv
+    def self.export_csv
+        public_bodies = PublicBody.visible.find(:all, :order => 'url_name',
+                                              :include => [:translations, :tags])
+        FasterCSV.generate() do |csv|
+            csv << [
+                    'Name',
+                    'Short name',
+                    # deliberately not including 'Request email'
+                    'URL name',
+                    'Tags',
+                    'Home page',
+                    'Publication scheme',
+                    'Disclosure log',
+                    'Notes',
+                    'Created at',
+                    'Updated at',
+                    'Version',
+            ]
+            public_bodies.each do |public_body|
+                csv << [
+                    public_body.name,
+                    public_body.short_name,
+                    # DO NOT include request_email (we don't want to make it
+                    # easy to spam all authorities with requests)
+                    public_body.url_name,
+                    public_body.tag_string,
+                    public_body.calculated_home_page,
+                    public_body.publication_scheme,
+                    public_body.disclosure_log,
+                    public_body.notes,
+                    public_body.created_at,
+                    public_body.updated_at,
+                    public_body.version,
+                ]
+            end
+        end
+    end
+
     # Does this user have the power of FOI officer for this body?
     def is_foi_officer?(user)
         user_domain = user.email_domain
@@ -512,6 +552,20 @@ class PublicBody < ActiveRecord::Base
     end
     def foi_officer_domain_required
         return self.request_email_domain
+    end
+
+    # Returns nil if configuration variable not set
+    def override_request_email
+        e = Configuration::override_all_public_body_request_emails
+        e if e != ""
+    end
+
+    def request_email
+        if override_request_email
+            override_request_email
+        else
+            read_attribute(:request_email)
+        end
     end
 
     # Domain name of the request email

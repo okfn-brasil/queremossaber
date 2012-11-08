@@ -16,6 +16,10 @@ namespace :themes do
         success
     end
 
+    def checkout_remote_branch(branch)
+        system("git checkout origin/#{branch}")
+    end
+
     def usage_tag(version)
         "use-with-alaveteli-#{version}"
     end
@@ -26,8 +30,12 @@ namespace :themes do
             clone_command = "git clone #{uri} #{name}"
             if system(clone_command)
                 Dir.chdir install_path do
-                    # try to checkout a tag exactly matching ALAVETELI VERSION
-                    tag_checked_out = checkout_tag(ALAVETELI_VERSION)
+                    # First try to checkout a specific branch of the theme
+                    tag_checked_out = checkout_remote_branch(Configuration::theme_branch) if Configuration::theme_branch
+                    if !tag_checked_out
+                        # try to checkout a tag exactly matching ALAVETELI VERSION
+                        tag_checked_out = checkout_tag(ALAVETELI_VERSION)
+                    end
                     if ! tag_checked_out
                         # if we're on a hotfix release (four sequence elements or more),
                         # look for a usage tag matching the minor release (three sequence elements)
@@ -86,12 +94,10 @@ namespace :themes do
     desc "Install themes specified in the config file's THEME_URLS"
     task :install => :environment do
         verbose = true
-        theme_urls = MySociety::Config.get("THEME_URLS", [])
-        theme_urls.each{ |theme_url| install_theme(theme_url, verbose) }
-        theme_url = MySociety::Config.get("THEME_URL", "")
-        if ! theme_url.blank?
+        Configuration::theme_urls.each{ |theme_url| install_theme(theme_url, verbose) }
+        if ! Configuration::theme_url.blank?
             # Old version of the above, for backwards compatibility
-            install_theme(theme_url, verbose, deprecated=true)
+            install_theme(Configuration::theme_url, verbose, deprecated=true)
         end
     end
 end

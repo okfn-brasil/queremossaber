@@ -14,6 +14,9 @@
         <% if !@public_body.publication_scheme.empty? %>
             <%= link_to _('Publication scheme'), @public_body.publication_scheme %><br>
         <% end %>
+        <% unless @public_body.disclosure_log.empty? %>
+            <%= link_to _('Disclosure log'), @public_body.disclosure_log %><br>
+        <% end %>
         <% if @public_body.has_tag?("charity") %>
             <% for tag_value in @public_body.get_tag_values("charity") %>
                 <% if tag_value.match(/^SC/) %>
@@ -63,6 +66,12 @@
                 <%= _('This authority no longer exists, so you cannot make a request to it.')%>
             <% else %>
                 <%= _('For an unknown reason, it is not possible to make a request to this authority.')%>
+            <% end %>
+
+            <% if @public_body.override_request_email %>
+                <p>
+                    <%= _("<strong>Note:</strong> Because we're testing, requests are being sent to {{email}} rather than to the actual authority.", :email => @public_body.override_request_email) %>
+                </p>
             <% end %>
         </div>
     </div>

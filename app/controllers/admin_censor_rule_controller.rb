@@ -3,8 +3,6 @@
 #
 # Copyright (c) 2008 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: admin_censor_rule_controller.rb,v 1.7 2009-06-30 14:28:25 francis Exp $
 
 class AdminCensorRuleController < AdminController
     def new
@@ -17,7 +15,7 @@ class AdminCensorRuleController < AdminController
     end
 
     def create
-        params[:censor_rule][:last_edit_editor] = admin_http_auth_user()
+        params[:censor_rule][:last_edit_editor] = admin_current_user()
         @censor_rule = CensorRule.new(params[:censor_rule])
         if @censor_rule.save
             if !@censor_rule.info_request.nil?
@@ -44,7 +42,7 @@ class AdminCensorRuleController < AdminController
     end
 
     def update
-        params[:censor_rule][:last_edit_editor] = admin_http_auth_user()
+        params[:censor_rule][:last_edit_editor] = admin_current_user()
         @censor_rule = CensorRule.find(params[:id])
         if @censor_rule.update_attributes(params[:censor_rule])
             if !@censor_rule.info_request.nil?

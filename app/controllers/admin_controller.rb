@@ -3,8 +3,6 @@
 #
 # Copyright (c) 2009 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: admin_controller.rb,v 1.29 2009-09-17 10:24:35 francis Exp $
 
 require 'fileutils'
 
@@ -47,12 +45,36 @@ class AdminController < ApplicationController
         end
     end
 
+    # For administration interface, return display name of authenticated user
+    def admin_current_user
+        if Configuration::skip_admin_auth
+            admin_http_auth_user
+        else
+            session[:admin_name]
+        end
+    end
+
+    # If we're skipping Alaveteli admin authentication, assume that the environment
+    # will give us an authenticated user name
+    def admin_http_auth_user
+        # This needs special magic in mongrel: http://www.ruby-forum.com/topic/83067
+        # Hence the second clause which reads X-Forwarded-User header if available.
+        # See the rewrite rules in conf/httpd.conf which set X-Forwarded-User
+        if request.env["REMOTE_USER"]
+            return request.env["REMOTE_USER"]
+        elsif request.env["HTTP_X_FORWARDED_USER"]
+            return request.env["HTTP_X_FORWARDED_USER"]
+        else
+            return "*unknown*";
+        end
+    end
+
     def authenticate
-        if MySociety::Config.get('SKIP_ADMIN_AUTH', false)
+        if Configuration::skip_admin_auth
             session[:using_admin] = 1
             return
         else
-            if session[:using_admin].nil?
+            if session[:using_admin].nil? || session[:admin_name].nil?
                 if params[:emergency].nil?
                     if authenticated?(
                                       :web => _("To log into the administrative interface"),
@@ -61,21 +83,20 @@ class AdminController < ApplicationController
                                       :user_name => "a superuser")
                         if !@user.nil? && @user.admin_level == "super"
                             session[:using_admin] = 1
-                            request.env['REMOTE_USER'] = @user.url_name
+                            session[:admin_name] = @user.url_name
                         else
 
                             session[:using_admin] = nil
                             session[:user_id] = nil
+                            session[:admin_name] = nil
                             self.authenticate
                         end
                     end
                 else
-                    config_username = MySociety::Config.get('ADMIN_USERNAME', '')
-                    config_password = MySociety::Config.get('ADMIN_PASSWORD', '')
                     authenticate_or_request_with_http_basic do |user_name, password|
-                        if user_name == config_username && password == config_password
+                        if user_name == Configuration::admin_username && password == Configuration::admin_password
                             session[:using_admin] = 1
-                            request.env['REMOTE_USER'] = user_name
+                            session[:admin_name] = user_name
                         else
                             request_http_basic_authentication
                         end

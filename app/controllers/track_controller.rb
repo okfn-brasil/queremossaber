@@ -4,8 +4,6 @@
 #
 # Copyright (c) 2008 UK Citizens Online Democracy. All rights reserved.
 # Email: francis@mysociety.org; WWW: http://www.mysociety.org/
-#
-# $Id: track_controller.rb,v 1.31 2009-09-02 14:18:26 francis Exp $
 
 class TrackController < ApplicationController
 
@@ -182,7 +180,7 @@ class TrackController < ApplicationController
         new_medium = params[:track_medium]
         if new_medium == 'delete'
             track_thing.destroy
-            flash[:notice] = _("You are no longer following {{track_description}}", :track_description => track_thing.params[:list_description])
+            flash[:notice] = _("You are no longer following {{track_description}}.", :track_description => track_thing.params[:list_description])
             redirect_to params[:r]
         # Reuse code like this if we let medium change again.
         #elsif new_medium == 'email_daily'

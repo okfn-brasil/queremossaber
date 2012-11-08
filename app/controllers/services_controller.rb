@@ -6,16 +6,16 @@ class ServicesController < ApplicationController
 
     def other_country_message
         text = ""
-        iso_country_code = MySociety::Config.get('ISO_COUNTRY_CODE').downcase
+        iso_country_code = Configuration::iso_country_code.downcase
         if country_from_ip.downcase != iso_country_code
             found_country = WorldFOIWebsites.by_code(country_from_ip)
-            found_country_name = !found_country.nil? && found_country[:country_name]
 
             old_fgt_locale = FastGettext.locale
             begin
               FastGettext.locale = FastGettext.best_locale_in(request.env['HTTP_ACCEPT_LANGUAGE'])
-              if found_country_name
-                  text = _("Hello! You can make Freedom of Information requests within {{country_name}} at {{link_to_website}}", :country_name => found_country_name, :link_to_website => "<a href=\"#{found_country[:url]}\">#{found_country[:name]}</a>")
+              if found_country && found_country[:country_name] && found_country[:url] && found_country[:name]
+                  text = _("Hello! You can make Freedom of Information requests within {{country_name}} at {{link_to_website}}",
+                    :country_name => found_country[:country_name], :link_to_website => "<a href=\"#{found_country[:url]}\">#{found_country[:name]}</a>")
               else
                   current_country = WorldFOIWebsites.by_code(iso_country_code)[:country_name]
                   text = _("Hello! We have an  <a href=\"/help/alaveteli?country_name=#{CGI.escape(current_country)}\">important message</a> for visitors outside {{country_name}}", :country_name => current_country)
@@ -36,9 +36,9 @@ class ServicesController < ApplicationController
                :content_type => "text/plain",
                :layout => false,
                :locals => {:name_to => info_request.user_name,
-                          :name_from => MySociety::Config.get("CONTACT_NAME", 'Alaveteli'),
+                          :name_from => Configuration::contact_name,
                           :info_request => info_request, :reason => params[:reason],
-                          :info_request_url => 'http://' + MySociety::Config.get('DOMAIN') + request_url(info_request),
+                          :info_request_url => 'http://' + Configuration::domain + request_url(info_request),
                           :site_name => site_name}
     end
 
