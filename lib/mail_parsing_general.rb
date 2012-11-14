@@ -93,4 +93,30 @@ module MailParsingGeneral
         end
     end
 
+    def MailParsingGeneral._get_attachment_text_from_zip_file(zip_file)
+        text = ""
+        for entry in zip_file
+            if entry.file?
+                filename = entry.to_s
+                begin
+                    body = entry.get_input_stream.read
+                rescue
+                    # move to next attachment silently if there were problems
+                    # XXX really should reduce this to specific exceptions?
+                    # e.g. password protected
+                    next
+                end
+                calc_mime = AlaveteliFileTypes.filename_to_mimetype(filename)
+                if calc_mime
+                    content_type = calc_mime
+                else
+                    content_type = 'application/octet-stream'
+                end
+
+                text += MailParsingGeneral._get_attachment_text_internal_one_file(content_type, body)
+            end
+        end
+        return text
+    end
+
 end
