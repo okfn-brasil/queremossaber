@@ -4,13 +4,52 @@ module Mail
         attr_accessor :url_part_number
         attr_accessor :rfc822_attachment # when a whole email message is attached as text
         attr_accessor :within_rfc822_attachment # for parts within a message attached as text (for getting subject mainly)
+        attr_accessor :count_parts_count
+        attr_accessor :count_first_uudecode_count
+        def initialize(*args, &block)
+          @body = nil
+          @body_raw = nil
+          @separate_parts = false
+          @text_part = nil
+          @html_part = nil
+          @errors = nil
+          @header = nil
+          @charset = 'UTF-8'
+          @defaulted_charset = true
+
+          @perform_deliveries = true
+          @raise_delivery_errors = true
+
+          @delivery_handler = nil
+
+          @delivery_method = Mail.delivery_method.dup
+
+          @transport_encoding = Mail::Encodings.get_encoding('7bit')
+
+          @mark_for_delete = false
+
+          if args.flatten.first.respond_to?(:each_pair)
+            init_with_hash(args.flatten.first)
+          else
+            init_with_string(args.flatten[0].to_s)
+          end
+
+          if block_given?
+            instance_eval(&block)
+          end
+
+          self
+        end
     end
 end
 
 module MailParsingWithMail
 
+    include MailParsingGeneral
+
     def MailParsingWithMail.mail_from_raw_email(data)
-       Mail.new(data)
+       mail = Mail.new(data)
+       mail
     end
 
     def MailParsingWithMail.first_from(mail)
