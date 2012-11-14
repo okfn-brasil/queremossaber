@@ -103,7 +103,7 @@ def permanently_failed_addresses(message)
             permanently_failed_recipients = []
             message.parts.each do |part|
                 if MailParsing.get_content_type(part) == "message/delivery-status"
-                    sections = part.body.decoded.split(/\r?\n\r?\n/)
+                    sections =  MailParsing.get_part_body(part).split(/\r?\n\r?\n/)
                     # The first section is a generic header; subsequent sections
                     # represent a particular recipient. Since we
                     sections[1..-1].each do |section|
@@ -127,7 +127,7 @@ def permanently_failed_addresses(message)
     # Then look for the style we’ve seen in WebShield bounces
     # (These do not have a return path of <> in the cases I have seen.)
     if subject == "Returned Mail: Error During Delivery"
-      if message.body.decoded =~ /^\s*---- Failed Recipients ----\s*((?:<[^>]+>\n)+)/
+      if  MailParsing.get_part_body(message) =~ /^\s*---- Failed Recipients ----\s*((?:<[^>]+>\n)+)/
         return $1.scan(/<([^>]+)>/).flatten
       end
     end
