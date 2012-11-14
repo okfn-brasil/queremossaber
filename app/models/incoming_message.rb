@@ -256,7 +256,6 @@ class IncomingMessage < ActiveRecord::Base
 
         # Replace censor items
         self.info_request.apply_censor_rules_to_binary!(text)
-
         raise "internal error in binary_mask_stuff" if text.size != orig_size
         return text
     end
@@ -435,7 +434,6 @@ class IncomingMessage < ActiveRecord::Base
     def get_main_body_text_internal
         parse_raw_email!
         main_part = get_main_body_text_part
-
         return MailParsing.convert_part_body_to_text(main_part)
     end
 
@@ -448,23 +446,24 @@ class IncomingMessage < ActiveRecord::Base
         # include no text alternative for the main part, and we don't want to
         # instead use the first text attachment
         # e.g. http://www.whatdotheyknow.com/request/list_of_public_authorties)
-        leaves.each do |p|
-            if p.content_type == 'text/plain' or p.content_type == 'text/html'
-                return p
+        leaves.each do |leaf|
+            content_type = MailParsing.get_content_type(leaf)
+            if ['text/plain', 'text/html'].include?(leaf.content_type)
+                return leaf
             end
         end
 
         # Otherwise first part which is any sort of text
-        leaves.each do |p|
-            if p.content_type.match(/^text/)
-                return p
+        leaves.each do |leaf|
+            if leaf.content_type.match(/^text/)
+                return leaf
             end
         end
 
         # ... or if none, consider first part
-        p = leaves[0]
+        leaf = leaves[0]
         # if it is a known type then don't use it, return no body (nil)
-        if !p.nil? && AlaveteliFileTypes.mimetype_to_extension(p.content_type)
+        if !leaf.nil? && AlaveteliFileTypes.mimetype_to_extension(leaf.content_type)
             # this is guess of case where there are only attachments, no body text
             # e.g. http://www.whatdotheyknow.com/request/cost_benefit_analysis_for_real_n
             return nil
@@ -473,7 +472,7 @@ class IncomingMessage < ActiveRecord::Base
         # like binary/octet-stream, or the like, which are really text - XXX if
         # you find an example, put URL here - perhaps we should be always returning
         # nil in this case)
-        return p
+        return leaf
     end
     # Returns attachments that are uuencoded in main body part
     def _uudecode_and_save_attachments(text)
