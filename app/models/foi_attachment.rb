@@ -332,7 +332,7 @@ class FoiAttachment < ActiveRecord::Base
                 if RUBY_VERSION.to_f >= 1.9
                     tempfile = Tempfile.new('foiextract', '.',  :encoding => text.encoding)
                 else
-                    tempfile = Tempfile.new('foiextract', '.', options)
+                    tempfile = Tempfile.new('foiextract', '.')
                 end
                 tempfile.print text
                 tempfile.flush
