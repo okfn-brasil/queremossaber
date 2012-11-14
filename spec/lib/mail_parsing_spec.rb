@@ -52,10 +52,13 @@ describe 'when parsing mail with the tmail or mail gem' do
             mail = get_mail('rfc822-attachment.email')
             attributes = MailParsing.get_attachment_attributes(mail)
             attributes.size.should == 2
-            attributes.each do |attr|
-                puts attr[:leaf].inspect
-            end
-            # attributes[1][:leaf].rfc822_attachment.should_not be_nil
+            rfc_attachment = attributes[1]
+            rfc_attachment[:within_rfc822_subject].should == 'Freedom of Information request'
+            headers = ['Date: Thu, 13 Mar 2008 16:57:33 +0000',
+                       'Subject: Freedom of Information request',
+                       'From: An FOI Officer <foi.officer@example.com>',
+                       'To: request-bounce-xx-xxxxx@whatdotheyno.com']
+            rfc_attachment[:body].should == "#{headers.join("\n")}\n\nsome example text"
         end
 
     end
