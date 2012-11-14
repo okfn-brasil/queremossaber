@@ -235,7 +235,7 @@ module MailParsingWithTmail
         ensure_parts_counted(mail)
         attachments = []
         for leaf in leaves
-            body = leaf.body
+            body = get_part_body(leaf)
             # As leaf.body causes MIME decoding which uses lots of RAM, do garbage collection here
             # to prevent excess memory use. XXX not really sure if this helps reduce
             # peak RAM use overall. Anyway, maybe there is something better to do than this.

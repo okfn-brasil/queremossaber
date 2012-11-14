@@ -243,7 +243,7 @@ module MailParsingWithMail
         attachments = []
 
         for leaf in leaves
-            body = leaf.body.decoded
+            body = get_part_body(leaf)
             if leaf.within_rfc822_attachment
                 within_rfc822_subject = leaf.within_rfc822_attachment.subject
                 # Test to see if we are in the first part of the attached
