@@ -334,7 +334,7 @@ class FoiAttachment < ActiveRecord::Base
                 else
                     tempfile = Tempfile.new('foiextract', '.', options)
                 end
-                tempfile.print body_for_conversion
+                tempfile.print text
                 tempfile.flush
 
 
