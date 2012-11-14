@@ -140,5 +140,12 @@ module MailParsingWithMail
     end
 
 
+    def MailParsingWithMail.get_content_type(part)
+        part.content_type ? part.content_type.split(';')[0] : nil
+    end
+
+    def MailParsingWithMail.get_header_string(header, mail)
+        mail.header[header] ? mail.header[header].to_s : nil
+    end
 end
 
