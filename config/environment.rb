@@ -44,10 +44,12 @@ load "util.rb"
 require File.join(File.dirname(__FILE__), '../lib/old_rubygems_patch')
 require 'configuration'
 
+
 # Application version
 ALAVETELI_VERSION = '0.6.8'
 
 Rails::Initializer.run do |config|
+
   # Load intial mySociety config
   if ENV["RAILS_ENV"] == "test"
       MySociety::Config.set_file(File.join(config.root_path, 'config', 'test'), true)
@@ -101,13 +103,15 @@ Rails::Initializer.run do |config|
   ENV['RECAPTCHA_PRIVATE_KEY'] = Configuration::recaptcha_private_key
 end
 
+
+
 require 'mail_parsing_general'
 if RUBY_VERSION.to_f >= 1.9
     require 'mail_parsing_with_mail'
-    MailParsing = MailParsingWithMail
+    MailParsing = MailParsingWithMail if !defined?(MailParsing)
 else
     require 'mail_parsing_with_tmail'
-    MailParsing = MailParsingWithTmail
+    MailParsing = MailParsingWithTmail if !defined?(MailParsing)
 end
 
 # Add new inflection rules using the following format
@@ -172,3 +176,5 @@ if !Configuration.exception_notifications_from.blank? && !Configuration.exceptio
   ExceptionNotification::Notifier.sender_address = Configuration::exception_notifications_from
   ExceptionNotification::Notifier.exception_recipients = Configuration::exception_notifications_to
 end
+
+
