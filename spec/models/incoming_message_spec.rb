@@ -275,7 +275,6 @@ describe IncomingMessage, " when censoring data" do
         @regex_censor_rule.last_edit_editor = 'unknown'
         @regex_censor_rule.last_edit_comment = 'none'
         @im.info_request.censor_rules << @regex_censor_rule
-        load_raw_emails_data
     end
 
     it "should do nothing to a JPEG" do
@@ -373,7 +372,6 @@ describe IncomingMessage, " when censoring whole users" do
         @censor_rule_1.last_edit_editor = "unknown"
         @censor_rule_1.last_edit_comment = "none"
         @im.info_request.user.censor_rules << @censor_rule_1
-        load_raw_emails_data
     end
 
     it "should apply censor rules to HTML files" do
@@ -391,10 +389,6 @@ end
 
 
 describe IncomingMessage, " when uudecoding bad messages" do
-
-    before(:each) do
-        load_raw_emails_data
-    end
 
     it "should be able to do it at all" do
         mail_body = load_file_fixture('incoming-request-bad-uuencoding.email')
@@ -434,10 +428,6 @@ end
 
 describe IncomingMessage, "when messages are attached to messages" do
 
-    before(:each) do
-        load_raw_emails_data
-    end
-
     it 'should expand an RFC822 attachment' do
         mail_body = load_file_fixture('rfc822-attachment.email')
         mail = MailParsing.mail_from_raw_email(mail_body)
@@ -463,8 +453,6 @@ describe IncomingMessage, "when messages are attached to messages" do
         im = incoming_messages(:useless_incoming_message)
         im.stub!(:mail).and_return(mail)
 
-        im.extract_attachments!
-
         attachments = im.get_attachments_for_display
         attachments.map(&:display_filename).should == [
             'Same attachment twice.txt',
@@ -489,17 +477,12 @@ end
 
 describe IncomingMessage, "when Outlook messages are attached to messages" do
 
-    before(:each) do
-        load_raw_emails_data
-    end
-
     it "should flatten all the attachments out" do
         mail_body = load_file_fixture('incoming-request-oft-attachments.email')
         mail = MailParsing.mail_from_raw_email(mail_body)
 
         im = incoming_messages(:useless_incoming_message)
         im.stub!(:mail).and_return(mail)
-        im.extract_attachments!
 
         im.get_attachments_for_display.map(&:display_filename).should == [
             'test.html',  # picks HTML rather than text by default, as likely to render better
@@ -510,17 +493,12 @@ end
 
 describe IncomingMessage, "when TNEF attachments are attached to messages" do
 
-    before(:each) do
-        load_raw_emails_data
-    end
-
     it "should flatten all the attachments out" do
         mail_body = load_file_fixture('incoming-request-tnef-attachments.email')
         mail = MailParsing.mail_from_raw_email(mail_body)
 
         im = incoming_messages(:useless_incoming_message)
         im.stub!(:mail).and_return(mail)
-        im.extract_attachments!
 
         im.get_attachments_for_display.map(&:display_filename).should == [
             'FOI 09 02976i.doc',
