@@ -1,19 +1,11 @@
 require File.expand_path(File.dirname(__FILE__) + '/../spec_helper')
 require "external_command"
 
-def ignore_deprecation_errors(message)
-    message.split("\n").reject{|line|
-        line['iconv will be deprecated in the future'] ||
-        line['Gem.source_index is deprecated'] ||
-        line['Gem.source_index called from']
-    }.join("\n")
-end
-
 def mail_reply_test(email_filename)
     Dir.chdir Rails.root do
         xc = ExternalCommand.new("script/handle-mail-replies", "--test")
         xc.run(load_file_fixture(email_filename))
-        ignore_deprecation_errors(xc.err).should == ""
+        xc.err.should == ""
         return xc
     end
 end
@@ -22,7 +14,7 @@ describe "When filtering" do
     it "should not fail when not in test mode" do
         xc = ExternalCommand.new("script/handle-mail-replies")
         xc.run(load_file_fixture("track-response-exim-bounce.email"))
-        ignore_deprecation_errors(xc.err).should == ""
+        xc.err.should == ""
     end
 
     it "should detect an Exim bounce" do
@@ -30,19 +22,19 @@ describe "When filtering" do
         r.status.should == 1
         r.out.should == "user@example.com\n"
     end
-    
+
     it "should detect a WebShield delivery error message" do
         r = mail_reply_test("track-response-webshield-bounce.email")
         r.status.should == 1
         r.out.should == "failed.user@example.co.uk\n"
     end
-    
+
     it "should detect a MS Exchange non-permanent delivery error message" do
         r = mail_reply_test("track-response-ms-bounce.email")
         r.status.should == 1
         r.out.should == ""
     end
-    
+
     it "should pass on a non-bounce message" do
         r = mail_reply_test("incoming-request-bad-uuencoding.email")
         r.status.should == 0
