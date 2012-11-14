@@ -20,13 +20,26 @@ require "configuration"
 MySociety::Config.set_file(File.join($alaveteli_dir, 'config', 'general'), true)
 MySociety::Config.load_default
 
-require 'action_mailer'
+$:.push(File.join($alaveteli_dir, 'lib'))
+require 'mail_parsing_general'
+if RUBY_VERSION.to_f >= 1.9
+    require 'mail'
+    require 'mail_parsing_with_mail'
+    MailParsing = MailParsingWithMail
+    # the default encoding for IO is utf-8, and we use utf-8 internally
+    Encoding.default_external = Encoding.default_internal = Encoding::UTF_8
+else
+    require 'action_mailer'
+    require 'mail_parsing_with_tmail'
+    MailParsing = MailParsingWithTmail
+end
+
 
 def main(in_test_mode)
     Dir.chdir($alaveteli_dir) do
         raw_message = $stdin.read
         begin
-            message = TMail::Mail.parse(raw_message)
+            message = MailParsing.mail_from_raw_email(raw_message)
         rescue
             # Error parsing message. Just pass it on, to be on the safe side.
             forward_on(raw_message) unless in_test_mode
@@ -48,13 +61,14 @@ def main(in_test_mode)
         # If we are still here, there are no permanent failures,
         # so if the message is a multipart/report then it must be
         # reporting a temporary failure. In this case we discard it
-        if message.content_type == "multipart/report"
+        if MailParsing.get_content_type(message) == "multipart/report"
           return 1
         end
 
         # Another style of temporary failure message
-        subject = message.header_string("Subject")
-        if message.content_type == "multipart/mixed" && subject == "Delivery Status Notification (Delay)"
+        subject = MailParsing.get_header_string("Subject", message)
+
+        if MailParsing.get_content_type(message) == "multipart/mixed" && subject == "Delivery Status Notification (Delay)"
           return 1
         end
 
@@ -70,11 +84,10 @@ def main(in_test_mode)
 end
 
 def permanently_failed_addresses(message)
-    if message.header_string("Return-Path") == "<>"
+    if MailParsing.empty_return_path?(message)
         # Some sort of auto-response
-
         # Check for Exim’s X-Failed-Recipients header
-        failed_recipients = message.header_string("X-Failed-Recipients")
+        failed_recipients = MailParsing.get_header_string('X-Failed-Recipients', message)
         if !failed_recipients.nil?
             # The X-Failed-Recipients header contains the email address that failed
             # Check for the words "This is a permanent error." in the body, to indicate
@@ -85,11 +98,12 @@ def permanently_failed_addresses(message)
         end
 
         # Next, look for multipart/report
-        if message.content_type == "multipart/report"
+        content_type = MailParsing.get_content_type(message)
+        if content_type == "multipart/report"
             permanently_failed_recipients = []
             message.parts.each do |part|
-                if part.content_type == "message/delivery-status"
-                    sections = part.body.split(/\r?\n\r?\n/)
+                if MailParsing.get_content_type(part) == "message/delivery-status"
+                    sections = part.body.decoded.split(/\r?\n\r?\n/)
                     # The first section is a generic header; subsequent sections
                     # represent a particular recipient. Since we
                     sections[1..-1].each do |section|
@@ -109,11 +123,11 @@ def permanently_failed_addresses(message)
         end
     end
 
-    subject = message.header_string("Subject")
+    subject = MailParsing.get_header_string("Subject", message)
     # Then look for the style we’ve seen in WebShield bounces
     # (These do not have a return path of <> in the cases I have seen.)
     if subject == "Returned Mail: Error During Delivery"
-      if message.body =~ /^\s*---- Failed Recipients ----\s*((?:<[^>]+>\n)+)/
+      if message.body.decoded =~ /^\s*---- Failed Recipients ----\s*((?:<[^>]+>\n)+)/
         return $1.scan(/<([^>]+)>/).flatten
       end
     end
@@ -124,12 +138,13 @@ end
 def is_oof?(message)
     # Check for out-of-office
 
-    if message.header_string("X-POST-MessageClass") == "9; Autoresponder"
+
+    if MailParsing.get_header_string("X-POST-MessageClass", message) == "9; Autoresponder"
         return true
     end
 
-    subject = message.header_string("Subject").downcase
-    if message.header_string("Return-Path") == "<>"
+    subject = MailParsing.get_header_string("Subject", message).downcase
+    if MailParsing.empty_return_path?(message)
         if subject.start_with? "out of office: "
             return true
         end
@@ -138,7 +153,7 @@ def is_oof?(message)
         end
     end
 
-    if message.header_string("Auto-Submitted") == "auto-generated"
+    if MailParsing.get_header_string("Auto-Submitted", message) == "auto-generated"
         if subject =~ /out of( the)? office/
             return true
         end
