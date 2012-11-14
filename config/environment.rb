@@ -9,6 +9,8 @@ if RUBY_VERSION.to_f >= 1.9
     require 'active_support/inflector'
     # Activate warning messages again.
     $VERBOSE = original_verbose
+    require 'yaml'
+    YAML::ENGINE.yamler = "syck"
 end
 
 # Uncomment below to force Rails into production mode when
@@ -26,8 +28,6 @@ $:.push(File.join(File.dirname(__FILE__), '../commonlib/rblib'))
 # (type "git submodule update --init" in the whatdotheyknow directory)
 
 $:.unshift(File.join(File.dirname(__FILE__), '../vendor/plugins/globalize2/lib'))
-require 'yaml'
-YAML::ENGINE.yamler = "syck"
 
 load "validate.rb"
 load "config.rb"
