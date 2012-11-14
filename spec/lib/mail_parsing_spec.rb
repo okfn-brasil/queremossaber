@@ -39,6 +39,26 @@ describe 'when parsing mail with the tmail or mail gem' do
 
     end
 
+    describe 'when asked for the attachment attributes of a mail' do
+
+        it 'should get two attachment parts from a multipart mail with text and html alternatives
+        and an image' do
+            mail = get_mail('quoted-subject-iso8859-1.email')
+            attributes = MailParsing.get_attachment_attributes(mail)
+            attributes.size.should == 2
+        end
+
+        it 'should expand a mail attached as text' do
+            mail = get_mail('rfc822-attachment.email')
+            attributes = MailParsing.get_attachment_attributes(mail)
+            attributes.size.should == 2
+            attributes.each do |attr|
+                puts attr[:leaf].inspect
+            end
+            # attributes[1][:leaf].rfc822_attachment.should_not be_nil
+        end
+
+    end
 
     describe 'when asked for auto_submitted' do
 
