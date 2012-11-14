@@ -20,19 +20,23 @@ RAILS_GEM_VERSION = '2.3.14' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
-
 # MySociety specific helper functions
 $:.push(File.join(File.dirname(__FILE__), '../commonlib/rblib'))
 # ... if these fail to include, you need the commonlib submodule from git
 # (type "git submodule update --init" in the whatdotheyknow directory)
 
 $:.unshift(File.join(File.dirname(__FILE__), '../vendor/plugins/globalize2/lib'))
+require 'yaml'
+YAML::ENGINE.yamler = "syck"
 
 load "validate.rb"
 load "config.rb"
 load "format.rb"
 load "debug_helpers.rb"
 load "util.rb"
+
+
+
 # Patch Rails::GemDependency to cope with older versions of rubygems, e.g. in Debian Lenny
 # Restores override removed in https://github.com/rails/rails/commit/c20a4d18e36a13b5eea3155beba36bb582c0cc87
 # without effecting method behaviour
