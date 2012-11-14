@@ -456,6 +456,7 @@ describe RequestController, "when showing one request" do
         end
     end
 
+
     describe 'when handling incoming mail' do
 
         integrate_views
@@ -1584,9 +1585,15 @@ describe RequestController, "when sending a followup message" do
     end
 
     it "should require login" do
-        post :show_response, :outgoing_message => { :body => "What a useless response! You suck.", :what_doing => 'normal_sort' }, :id => info_requests(:fancy_dog_request).id, :incoming_message_id => incoming_messages(:useless_incoming_message), :submitted_followup => 1
+        post :show_response, :outgoing_message => { :body => "What a useless response! You suck.",
+                                                    :what_doing => 'normal_sort' },
+                             :id => info_requests(:fancy_dog_request).id,
+                             :incoming_message_id => incoming_messages(:useless_incoming_message).id,
+                             :submitted_followup => 1
         post_redirect = PostRedirect.get_last_post_redirect
-        response.should redirect_to(:controller => 'user', :action => 'signin', :token => post_redirect.token)
+        response.should redirect_to(:controller => 'user',
+                                    :action => 'signin',
+                                    :token => post_redirect.token)
     end
 
     it "should not let you if you are logged in as the wrong user" do
