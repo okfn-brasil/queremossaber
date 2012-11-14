@@ -52,7 +52,6 @@ module MailParsingGeneral
                 # lynx wordwraps links in its output, which then don't
                 # get formatted properly by Alaveteli. We use elinks
                 # instead, which doesn't do that.
-                puts "converting with charset #{charset} #{body}"
                 AlaveteliExternalCommand.run("elinks", "-eval", "set document.codepage.assume = \"#{charset}\"", "-eval", "set document.codepage.force_assumed = 1", "-dump-charset", "utf-8", "-force-html", "-dump",
                     tempfile.path, default_params.merge(:env => {"LANG" => "C"}))
             elsif content_type == 'application/vnd.ms-excel'
