@@ -527,11 +527,12 @@ class IncomingMessage < ActiveRecord::Base
             leaf = attrs[:leaf]
             attachment = self.foi_attachments.find_or_create_by_hexdigest(:hexdigest => attrs[:hexdigest])
             attachment.update_attributes(:url_part_number => leaf.url_part_number,
-                                         :content_type => leaf.content_type,
+                                         :content_type => MailParsing.get_content_type(leaf),
                                          :filename => MailParsing.get_part_file_name(leaf),
                                          :charset => leaf.charset,
-                                         :within_rfc822_subject => attrs[:within_rfc822_subject],
-                                         :body => attrs[:body])
+                                         :within_rfc822_subject => attrs[:within_rfc822_subject])
+            # Set the body separately as its handling can depend on the value of charset
+            attachment.body = attrs[:body]
             attachment.save!
             attachment_ids << attachment.id
         end
