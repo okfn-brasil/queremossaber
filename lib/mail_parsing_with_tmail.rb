@@ -208,6 +208,7 @@ module MailParsingWithTmail
                     # e.g. http://www.whatdotheyknow.com/request/chinese_names_for_british_politi
                     msg = Mapi::Msg.open(StringIO.new(part.body))
                     part.rfc822_attachment = TMail::Mail.parse(msg.to_mime.to_s)
+
                 elsif part.content_type == 'application/ms-tnef'
                     # A set of attachments in a TNEF file
                     part.rfc822_attachment = TNEF.as_tmail(part.body)
@@ -302,6 +303,7 @@ module MailParsingWithTmail
             # Text looks like unlabelled nonsense,
             # strip out anything that isn't UTF-8
             begin
+                source_charset = 'utf-8' if source_charset.nil?
                 text = Iconv.conv('utf-8//IGNORE', source_charset, text) +
                     _("\n\n[ {{site_name}} note: The above text was badly encoded, and has had strange characters removed. ]",
                       :site_name => MySociety::Config.get('SITE_NAME', 'Alaveteli'))
@@ -357,6 +359,12 @@ module MailParsingWithTmail
         return text
     end
 
+    def MailParsingWithTmail.get_content_type(part)
+      part.content_type
+    end
 
+    def MailParsingWithTmail.get_header_string(header, mail)
+        mail.header_string(header)
+    end
 
 end
