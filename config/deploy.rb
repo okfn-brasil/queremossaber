@@ -1,6 +1,6 @@
 require 'bundler/capistrano'
 
-set :stage, 'staging' unless exists? :stage
+set :stage, 'production' unless exists? :stage
 
 configuration = YAML.load_file('config/deploy.yml')[stage]
 
@@ -13,6 +13,12 @@ set :git_enable_submodules, true
 set :deploy_to, configuration['deploy_to']
 set :user, configuration['user']
 set :use_sudo, false
+set :bundle_flags, "--deployment --quiet --binstubs --shebang ruby-local-exec"
+set :default_environment, {
+    'PATH' => "$HOME/.rbenv/shims:$HOME/.rbenv/bin:$PATH",
+    'RBENV_VERSION' => '1.8.7-p371',
+    'RAILS_ENV' => 'production'
+}
 
 server configuration['server'], :app, :web, :db, :primary => true
 
@@ -33,14 +39,19 @@ namespace :xapian do
 end
 
 namespace :deploy do
-  desc "Restarting mod_rails with restart.txt"
-  task :restart, :roles => :app, :except => { :no_release => true } do
-    run "touch #{current_path}/tmp/restart.txt"
+  desc "Stopping thin"
+  task :stop, :roles => :app do
+    invoke_command "cd #{shared_path} && thin -C thin.yml stop"
   end
 
-  [:start, :stop].each do |t|
-    desc "#{t} task is a no-op with mod_rails"
-    task t, :roles => :app do ; end
+  desc "Starting thin"
+  task :start, :roles => :app do
+    invoke_command "cd #{shared_path} && thin -C thin.yml start"
+  end
+
+  desc "Restarting thin"
+  task :restart, :roles => :app do
+    invoke_command "cd #{shared_path} && thin -C thin.yml restart"
   end
 
   desc 'Link configuration after a code update'
