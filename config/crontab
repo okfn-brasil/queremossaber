@@ -1,0 +1,42 @@
+# crontab.ugly:
+# Timed tasks for FOI site. Template file.
+#
+# Copyright (c) 2008 UK Citizens Online Democracy. All rights reserved.
+# Email: francis@mysociety.org. WWW: http://www.mysociety.org/
+
+PATH=/usr/local/bin:/usr/bin:/bin
+MAILTO=vitor@vitorbaptista.com
+QS_PATH=/home/okfn/queremossaber.org.br
+QS_CURRENT_PATH=/home/okfn/queremossaber.org.br/current
+QS_SHARED_PATH=/home/okfn/queremossaber.org.br/shared
+
+# Every 5 minutes
+*/5 * * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/change-xapian-database.lock && $QS_CURRENT_PATH/script/update-xapian-index verbose=true >> $QS_SHARED_PATH/logs/update-xapian-index.log || echo "stalled?" && dotlockfile -u $QS_SHARED_PATH/change-xapian-database.lock 
+# Every 10 minutes
+5,15,25,35,45,55 * * * * okfn /etc/init.d/foi-alert-tracks check
+
+# Once an hour
+09 * * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/alert-comment-on-request.lock && $QS_CURRENT_PATH/script/alert-comment-on-request || echo "stalled?" && dotlockfile -u $QS_SHARED_PATH/alert-comment-on-request.lock 
+
+# Only root can read the log files
+31 * * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/load-mail-server-logs.lock && $QS_CURRENT_PATH/script/load-mail-server-log || echo "stalled?"
+
+# Once a day, early morning
+23 4 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/delete-old-things.lock && $QS_CURRENT_PATH/script/delete-old-things || echo "stalled?"
+0 6 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/alert-overdue-requests.lock && $QS_CURRENT_PATH/script/alert-overdue-requests || echo "stalled?"
+0 7 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/alert-new-response-reminders.lock && $QS_CURRENT_PATH/script/alert-new-response-reminders || echo "stalled?"
+0 8 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/alert-not-clarified-request.lock && $QS_CURRENT_PATH/script/alert-not-clarified-request || echo "stalled?"
+2 4 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/check-recent-requests-sent.lock && $QS_CURRENT_PATH/script/check-recent-requests-sent || echo "stalled?"
+45 3 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/stop-new-responses-on-old-requests.lock && $QS_CURRENT_PATH/script/stop-new-responses-on-old-requests || echo "stalled?"
+
+
+# Once a day on all servers
+43 2 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/request-creation-graph.lock && $QS_CURRENT_PATH/script/request-creation-graph || echo "stalled?"
+48 2 * * * okfn dotlockfile -r0 -p $QS_SHARED_PATH/user-use-graph.lock && $QS_CURRENT_PATH/script/user-use-graph || echo "stalled?"
+
+# Once a year :)
+@yearly okfn /bin/echo "A year has passed, please update the bank holidays for the Freedom of Information site, thank you."
+
+
+
+
