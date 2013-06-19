@@ -21,14 +21,13 @@
 #   <patriciacornils@gmail.com>, 2011.
 #   <pedro@esfera.mobi>, 2011-2012.
 #   <rafael.moretti@gmail.com>, 2012.
-# Vítor Márcio Paiva de Sousa Baptista <vitor@vitorbaptista.com>, 2013.
 #   <vitor@vitorbaptista.com>, 2013.
 msgid ""
 msgstr ""
 "Project-Id-Version: alaveteli\n"
 "Report-Msgid-Bugs-To: http://github.com/sebbacon/alaveteli/issues\n"
 "POT-Creation-Date: 2012-12-18 10:11+0000\n"
-"PO-Revision-Date: 2013-03-12 22:47+0000\n"
+"PO-Revision-Date: 2013-01-19 01:35+0000\n"
 "Last-Translator: leandrosalvador <leandrosalvador@gmail.com>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -320,7 +319,7 @@ msgid ""
 "<p>If you write about this request (for example in a forum or a blog) please"
 " link to this page, and add an\\n            annotation below telling people"
 " about your writing.</p>"
-msgstr "<p>Seu Pedido de Acesso à Informação foi <strong>enviado</strong>!</p>\\n            <p><strong>Vamos enviar-lhe um email</strong> quando houver uma resposta, ou depois de {{late_number_of_days}} dias úteis se o órgão público ainda não tiver \\n            respondido.</p>\\n            <p>Se você escrever sobre este pedido (em um fórum ou blog, por exemplo), por favor, crie um link para esta página e adicione \\n            comentários avisando as pessoas sobre seu pedido.</p>"
+msgstr "<p>Seu Pedido de Acesso à Informação Pública foi <strong>enviado</strong>!</p>\\n            <p><strong>Vamos enviar-lhe um email</strong> quando houver uma resposta, ou depois de {{late_number_of_days}} dias úteis se o órgão público ainda não tiver \\n            respondido.</p>\\n            <p>Se você escrever sobre este pedido (em um fórum ou blog, por exemplo), por favor, crie um link para esta página e adicione \\n            comentários avisando as pessoas sobre seu pedido.</p>"
 
 msgid ""
 "<p>{{site_name}} is currently in maintenance. You can only view existing "
@@ -854,7 +853,7 @@ msgstr "Você quis dizer: {{correction}}"
 msgid ""
 "Disclaimer: This message and any reply that you make will be published on "
 "the internet. Our privacy and copyright policies:"
-msgstr "Aviso: Esta mensagem e todas as respostas enviadas serão publicadas na Internet, por meio da plataforma Queremos Saber <http://queremossaber.org.br/>.Leia algumas questões sobre acesso a informação para agentes públicos <http://queremossaber.org.br/help/officers/>."
+msgstr "Aviso: Esta mensagem e todas as respostas serão publicadas na internet. Leia sobre nossa política de privacidade:"
 
 msgid "Disclosure log"
 msgstr ""
@@ -1272,7 +1271,7 @@ msgstr "Se você puder, digitalizar ou fotografe a resposta, e <strong>envie-nos
 msgid ""
 "If you find this service useful as an FOI officer, please ask your web "
 "manager to link to us from your organisation's FOI page."
-msgstr "Conheça a Lei de Acesso à Informação Pública: http://www.planalto.gov.br/ccivil_03/_ato2011-2014/2011/lei/l12527.htm"
+msgstr "Caso você ache esse serviço útil, por favor entre em contato."
 
 msgid ""
 "If you got the email <strong>more than six months ago</strong>, then this "
@@ -3311,7 +3310,7 @@ msgid ""
 msgstr "Você pode apenas ver pedidos de informação sobre o meio-ambiente feitos para essa entidade."
 
 msgid "You have a new response to the {{law_used_full}} request "
-msgstr "Você tem uma nova resposta para o seu pedido de {{law_used_full}}"
+msgstr "Você tem uma nova resposta para o seu pedido de acesso à informação."
 
 msgid ""
 "You have found a bug.  Please <a href=\"{{contact_url}}\">contact us</a> to "
@@ -3797,10 +3796,10 @@ msgid "{{info_request_user_name}} only:"
 msgstr "{{info_request_user_name}} apenas:"
 
 msgid "{{law_used_full}} request - {{title}}"
-msgstr "Pedido de {{law_used_full}} - {{title}}"
+msgstr "{{law_used_full}} pedido - {{title}}"
 
 msgid "{{law_used_full}} request GQ - {{title}}"
-msgstr ""
+msgstr "{{law_used_full}} request GQ - {{title}}"
 
 msgid "{{law_used}} requests at {{public_body}}"
 msgstr "Pedidos de Informação a(o) {{public_body}}"
@@ -3871,7 +3870,7 @@ msgstr "{{user_name}} adicionou um comentário"
 msgid ""
 "{{user_name}} has annotated your {{law_used_short}} \\nrequest. Follow this "
 "link to see what they wrote."
-msgstr "{{user_name}} fez anotações em seu pedido de\\n{{law_used_short}}. Siga este link para saber o que foi escrito."
+msgstr "{{user_name}} fez anotações em seu pedido\\n{{law_used_short}}. Siga este link para saber o que foi escrito."
 
 msgid "{{user_name}} has used {{site_name}} to send you the message below."
 msgstr "{{user_name}} usou o {{site_name}} para enviar-lhe a mensagem abaixo."
@@ -3892,4 +3891,4 @@ msgid ""
 msgstr "{{user}} ({{user_admin_link}}) fez esse pedido (<a href=\"{{request_admin_url}}\">admin</a>) para {{public_body_link}} (<a href=\"{{public_body_admin_url}}\">admin</a>)"
 
 msgid "{{user}} made this {{law_used_full}} request"
-msgstr "{{user}} fez esse pedido de {{law_used_full}}"
+msgstr "{{user}} fez esse pedido de informação"
